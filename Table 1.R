@@ -104,9 +104,9 @@ sum_demo      <- summary(tab_demo,      title = sprintf("A. Demographics & Clini
 sum_cardio    <- summary(tab_cardio,    title = "B. Cardiometabolic")
 sum_hema_renal<- summary(tab_hema_renal,title = "C. Hematologic & Renal/Others")
 write2(list(sum_demo, sum_cardio, sum_hema_renal),
-       file  = "table1.html",
+       file  = "table1.1.html",
        title = "Table 1. Baseline characteristics by group")
 
-browseURL(normalizePath("table1.html"))
+browseURL(normalizePath("table1.1.html"))
 
 

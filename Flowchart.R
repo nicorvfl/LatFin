@@ -49,7 +49,6 @@ NumEv <- CantidadEvaluaciones(df_v4)
 NumEv <- NumEv %>%
   filter(Eventos != c("pre","scr"))
 library(reshape2)
-View(NumEv)
 
 #baseline (1079), 6m (938), 12m (879), 18m (829), 24m (852)
 
@@ -69,8 +68,6 @@ Dropouts <- df_v4 %>%
   summarise(
     drop = rowSums(dropout_phase)
   )
-
-table(df_v4$dropout_phase)
 
 #-------------------------------------------------------------------------------
 #Flowchart 

@@ -48,7 +48,7 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "totale_rdc","totales_tardia","animaltotcorrect_vc",
              "p_total_score","m_total_score", "bp_systolic1","bp_systolic2",
              "bp_diastolic1","bp_diastolic2","hr1","hr2","height","weight","bmi",
-             "waist","glucose","hb1ac","total_cholesterol","triglycerides","hdl",
+             "waist","glucose","hba1c","total_cholesterol","triglycerides","hdl",
              "ldl","hemoglobin","hematocrit","creatinine","urea","vhs","insulinemia",
              "mmarg_date","mmarg_puntaje_total","mmbr_puntaje_total",
              "mmch_puntaje_total","cerad1_escore","cerad2_escore","cerad3_escore",
@@ -63,7 +63,7 @@ PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
 PatronNombres <- paste0("^(.*)_(", paste(Eventos, collapse = "|"), ")$")
 
 df_v1 <- df_bruto %>%
-  select(record_id, male_pre, date_start_pre,country_pre,age_pre,
+  select(record_id, male_pre, race_pre, date_start_pre,country_pre,age_pre,
          marital_status_pre,living_alone_pre,education_pre,education_years_base,
          tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
          heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
@@ -148,7 +148,41 @@ df_v4 <- df_v3 %>%
       TRUE ~ "Otro"))
 
 #-------------------------------------------------------------------------------
+#Arreglo personas que no están randomizadas
+#-------------------------------------------------------------------------------
 
+df_v4 <- df_v4 %>%
+  mutate(
+    Randomization = if_else(record_id %in% null_rdz$record_id,
+                            "No", Randomization))
+
+#-------------------------------------------------------------------------------
+#Etnicidad
+#-------------------------------------------------------------------------------
+race_pre <- df_v4 %>%
+  filter(Eventos == "pre") %>%
+  transmute(record_id,
+            race_pre = str_trim(as.character(race)))
+df_v4 <- df_v4 %>%
+  left_join(race_pre, by = "record_id") %>%
+  mutate(
+    race = if_else(!is.na(race_pre), race_pre, as.character(race)),
+    race = na_if(str_trim(race), "")
+  ) %>%
+  select(-race_pre)
+
+#-------------------------------------------------------------------------------
+#Arreglo algunos errores de laboratorio.
+#Ejemplo: en brasil pusieron el VHS faltante con un 999.
+#México tiene ceros pero no lo tiene tampoco.
+#-------------------------------------------------------------------------------
+
+df_v4 <- df_v4 %>%
+  mutate(
+    vhs = if_else(
+      vhs == 999 | center == "México",
+      NA_real_,   
+      vhs))
 
 
 
