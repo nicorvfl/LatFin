@@ -184,6 +184,3 @@ df_v4 <- df_v4 %>%
       NA_real_,   
       vhs))
 
-
-s
-
