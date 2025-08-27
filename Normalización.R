@@ -56,7 +56,9 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "score_diferido","date_memory", "gds_total_score", "cdr_sb",
              "score_final_score","iadl_score_total","apoe_genotype","apoe4",
              "aeyn","aeterm","aeclassif","nis_count","nis_count_telefonica","ec_count",
-             "dropout_phase","dropout_reason")
+             "dropout_phase","dropout_reason", "fra_score", "mmse_total",
+             "ifa18", "ifa19", "ifa20", "ifa21", "education_mother",
+             "education_father", "live_area", "house_type")
 
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
                          paste(Eventos, collapse = "|"), ")$")
@@ -107,7 +109,7 @@ df_v2 <- df_v1 %>%
   select(-c(education_years_base,education_pre))
 
 #-------------------------------------------------------------------------------
-#Voy a pasar a factor el status de grupo y rdz_yn
+#Voy a pasar a factor el status de grupo y rdz_yn + cambio sexo
 #-------------------------------------------------------------------------------
 
 df_v3 <- df_v2 %>%
@@ -118,7 +120,12 @@ df_v3 <- df_v2 %>%
     Randomization = factor(rdz_yn_scr,
                            levels = c("0", "1"),
                            labels = c("No", "Yes")))%>%
-  select(-c(rdz_yn_scr,rdz_rdz))
+  select(-c(rdz_yn_scr,rdz_rdz))%>%
+  mutate(
+    Sex = if_else(
+      male_pre == 1, "Men", "Women"
+    )
+  )
 
 #-------------------------------------------------------------------------------
 #Vamos a ver el tema países
@@ -183,4 +190,157 @@ df_v4 <- df_v4 %>%
       vhs == 999 | center == "México",
       NA_real_,   
       vhs))
+
+#-------------------------------------------------------------------------------
+#Voy a adicionar una columna que sea la clasificación del Framingham.
+#-------------------------------------------------------------------------------
+
+#Quiero mirar la distribución para entender el puntaje
+df_v4 <- df_v4 %>%
+  mutate(
+    Fra_Clase = if_else(
+      Sex == "Men", 
+      if_else(
+        fra_score <= 12, "Low",
+        if_else(fra_score < 16, "Medium", "High")),
+      if_else(
+      fra_score <= 19, "Low",
+      if_else(fra_score < 23, "Medium", "High"))),
+    Fra_Clase = factor(Fra_Clase) |> fct_relevel("Low", "Medium", "High"))
+
+library(ggplot2)
+ggplot(df_v4, aes(x = fra_score,
+                  fill = Sex))+
+  geom_histogram(position = "dodge")+
+  facet_grid(~ Fra_Clase)
+theme_light()
+#-------------------------------------------------------------------------------
+#Agrego una variable dicotómica que sea si tiene o no APOE e4
+#-------------------------------------------------------------------------------
+
+df_v4 <- df_v4 %>%
+  mutate(
+    APOE = case_when(
+      apoe4 == 0 ~ "Non-carrier",
+      apoe4 > 0  ~ "Carrier"
+    )
+  )
+
+#-------------------------------------------------------------------------------
+#Exclusión de mal randomizados de CR
+#-------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------
+#Paso el MMSE a baseline
+#-------------------------------------------------------------------------------
+
+df_v4 <- df_v4 %>%
+  group_by(record_id) %>% 
+  mutate(
+    mmse_total = if_else(
+      Eventos == "base" & is.na(mmse_total),  
+      mmse_total[Eventos == "pre"][1],        
+      mmse_total                          
+    )
+  ) %>%
+  ungroup()
+
+#-------------------------------------------------------------------------------
+#Fumadores + consumo de alcohol
+#-------------------------------------------------------------------------------
+
+#Pregunta 1: ¿Cuántas personas han fumado a lo largo de su vida?
+#593
+
+fumadores <- df_v4 %>%
+  filter(Eventos == "base" &
+           Randomization == "Yes")%>%
+  summarise(
+    Cantidad_Fumadores = sum(tobacco_pre == 1, na.rm = TRUE)
+  )
+fumadores
+
+#Recodifico el nombre
+df_v4 <- df_v4 %>%
+  mutate(
+    History_Smoking = if_else(
+      tobacco_pre == 1,
+      "Smoking history", "No smoking history"
+    )
+  )
+
+#Vamos con el alcohol
+df_v4 <- df_v4 %>%
+  mutate(
+    Alcohol_Consumption = if_else(
+      if_any(c(ifa18, ifa19, ifa20, ifa21), ~ .x >= 3),
+      "At least once a week", "Less than once a week"
+    )
+  )
+
+#-------------------------------------------------------------------------------
+#Renombro el CDR y el IPAQ
+#-------------------------------------------------------------------------------
+
+df_v4 <- df_v4 %>%
+  rename(
+    CDR = score_final_score
+  ) %>%
+  mutate(
+    ipaq = case_when(
+      ipaq_score == 0 ~ "Sedentary",
+      ipaq_score == 1 ~ "Irregulary active",
+      ipaq_score == 2 ~ "Active",
+      ipaq_score == 3 ~ "Very active"
+    ))
+
+#-------------------------------------------------------------------------------
+#Determinantes sociales de la salud
+#-------------------------------------------------------------------------------
+
+df_v4 <- df_v4 %>%
+  mutate(
+    EscolaridadMadre = case_when(
+      education_mother == 0 ~ "No schooling",
+      education_mother == 1 ~ "Incomplete primary education",
+      education_mother == 2 ~ "Complete primary education",
+      education_mother == 3 ~ "Incomplete secondary education",
+      education_mother == 4 ~ "Complete secondary education",
+      education_mother == 5 ~ "Incomplete tertiary education",
+      education_mother == 6 ~ "Complete tertiary education",
+      education_mother == 7 ~ "Incomplete university education",
+      education_mother == 8 ~ "Complete university education",
+      education_mother == 9 ~ "Incomplete postgraduate education",
+      education_mother == 10 ~ "Complete postgraduate education",
+      education_mother == 1 ~ "Does not know"
+    ),
+    EscolaridadPadre = case_when(
+      education_father == 0 ~ "No schooling",
+      education_father == 1 ~ "Incomplete primary education",
+      education_father == 2 ~ "Complete primary education",
+      education_father == 3 ~ "Incomplete secondary education",
+      education_father == 4 ~ "Complete secondary education",
+      education_father == 5 ~ "Incomplete tertiary education",
+      education_father == 6 ~ "Complete tertiary education",
+      education_father == 7 ~ "Incomplete university education",
+      education_father == 8 ~ "Complete university education",
+      education_father == 9 ~ "Incomplete postgraduate education",
+      education_father == 10 ~ "Complete postgraduate education",
+      education_father == 1 ~ "Does not know"
+    ),
+    Area = case_when(
+      live_area == 1 ~ "Urban",
+      live_area == 2 ~ "Rural",
+      live_area == 9 ~ "Unknown"
+    ),
+    TipoHogar = case_when(
+      house_type == 1 ~ "House",
+      house_type == 2 ~ "Apartment",
+      house_type == 3 ~ "Room in boarding house",
+      house_type == 4 ~ "Room in hotel/guesthouse",
+      house_type == 5 ~ "Premises not built for housing",
+      house_type == 9 ~ "Unknown"
+    )
+  )
 
