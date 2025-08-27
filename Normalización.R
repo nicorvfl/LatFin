@@ -160,7 +160,7 @@ df_v4 <- df_v3 %>%
 
 df_v4 <- df_v4 %>%
   mutate(
-    Randomization = if_else(record_id %in% null_rdz$record_id,
+    Randomization = if_else(is.na(Randomization),
                             "No", Randomization))
 
 #-------------------------------------------------------------------------------
@@ -208,12 +208,6 @@ df_v4 <- df_v4 %>%
       if_else(fra_score < 23, "Medium", "High"))),
     Fra_Clase = factor(Fra_Clase) |> fct_relevel("Low", "Medium", "High"))
 
-library(ggplot2)
-ggplot(df_v4, aes(x = fra_score,
-                  fill = Sex))+
-  geom_histogram(position = "dodge")+
-  facet_grid(~ Fra_Clase)
-theme_light()
 #-------------------------------------------------------------------------------
 #Agrego una variable dicotómica que sea si tiene o no APOE e4
 #-------------------------------------------------------------------------------
@@ -225,10 +219,6 @@ df_v4 <- df_v4 %>%
       apoe4 > 0  ~ "Carrier"
     )
   )
-
-#-------------------------------------------------------------------------------
-#Exclusión de mal randomizados de CR
-#-------------------------------------------------------------------------------
 
 
 #-------------------------------------------------------------------------------
@@ -343,4 +333,57 @@ df_v4 <- df_v4 %>%
       house_type == 9 ~ "Unknown"
     )
   )
+
+#-------------------------------------------------------------------------------
+#Asimismo debería de excluir los ID mal randomizados de Costa Rica
+#-------------------------------------------------------------------------------
+id_erroneos <- c("321-154","321-156","321-157","321-159","321-163")
+
+df_v4 <- df_v4 %>%
+  filter(!record_id %in% id_erroneos)
+
+#-------------------------------------------------------------------------------
+#Tengo también personas que no están randomizadas pero tienen un "Yes"
+#-------------------------------------------------------------------------------
+
+id_erroneos_2 <- c("316-3","320-24","320-39","324-60","324-73")
+df_v4 <- df_v4 %>%
+  mutate(
+    Randomization = if_else(record_id %in% id_erroneos_2,
+                            "No",
+                            Randomization)
+  )
+
+#-------------------------------------------------------------------------------
+#Quiero crear una columna que me diga si el sujeto tiene o no la ev. completa
+#-------------------------------------------------------------------------------
+
+
+TestNps = c(
+  "imm_recalltotal","score_wais_bruto","score_wais_escalar",
+  "forwardtotcorrect","backwardtotcorrect","sequencetotcorrect",
+  "fwdlongspanleng","backlongspanleng","seqlongspanleng",
+  "trail_b_error","trail_a_error","trail_interrupt_test",
+  "tima_trail_a","tima_trail_b","stroop_p","stroop_c","stroop_pc",
+  "stroop_errores","csta","cstb","cstc","shifting_score",
+  "delayed_recalltotal","contlearntot","immcuetotal","total_evoc_1l",
+  "total_evoc_1g","total_evoc_1l1g","total_evoc_2l","total_evoc_2g",
+  "total_evoc_2l2g","total_evoc_3l","total_evoc_3g","total_evoc_3l3g",
+  "totalfreerecall","totalfreerecall_2","tiempo_parte_a","tiempo_parte_b",
+  "tiempo_parte_c","tiempo1","tiempo2","totale_rdl","totale_rdc",
+  "totales_tardia","animaltotcorrect_vc","p_total_score","m_total_score")
+
+df_v4 <- df_v4 %>%
+  mutate(
+    EvaluacionCompleta = rowSums(across(all_of(TestNps), ~ !is.na(.))) >= 3)%>%
+  mutate(
+    EvaluacionCompleta = if_else(
+      EvaluacionCompleta == TRUE, 1,0
+    )
+  )
+
+table(df_v4$EvaluacionCompleta)
+
+
+
 
