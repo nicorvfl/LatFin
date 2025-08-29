@@ -57,8 +57,13 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "score_final_score","iadl_score_total","apoe_genotype","apoe4",
              "aeyn","aeterm","aeclassif","nis_count","nis_count_telefonica","ec_count",
              "dropout_phase","dropout_reason", "fra_score", "mmse_total",
-             "ifa18", "ifa19", "ifa20", "ifa21", "education_mother",
-             "education_father", "live_area", "house_type")
+             "ifa18", "ifa19", "ifa20", "ifa21", "education_mother","mgr_count",
+             "education_father", "live_area", "house_type", "ef_count",
+             "mgr_1grupal1","mgr_2grupal1","mgr_3grupal1","mgr_4grupal1",
+             "mgr_4grupal1", "mgr_5grupal1","mgr_5grupal2","mgr_6grupal1",
+             "mgr_6grupal2","mgr_7grupal1","mgr_8grupal1","mgr_9grupal1",
+             "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1")
+
 
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
                          paste(Eventos, collapse = "|"), ")$")
@@ -381,6 +386,8 @@ df_v4 <- df_v4 %>%
       EvaluacionCompleta == TRUE, 1,0
     )
   )
+
+
 
 
 
