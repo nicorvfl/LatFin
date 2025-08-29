@@ -382,8 +382,5 @@ df_v4 <- df_v4 %>%
     )
   )
 
-table(df_v4$EvaluacionCompleta)
-
-
 
 
