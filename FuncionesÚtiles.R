@@ -62,3 +62,86 @@ CantidadEvaluaciones <- function(data,
 }
 
 #-------------------------------------------------------------------------------
+#-------------------------------------MIND SCORE--------------------------------
+
+df_v5$mind_oil        <- ifelse(df_v5$pointerfood1 == 1, 0, 1)
+df_v5$mind_fritura    <- ifelse(df_v5$pointerfood2 > 4, 0,
+                                ifelse(df_v5$pointerfood2 > 2, 0.5, 1))
+df_v5$mind_green      <- ifelse(df_v5$pointerfood3 == 6, 1,
+                                ifelse(df_v5$pointerfood3 > 3, 0.5, 0))
+df_v5$mind_sweet      <- ifelse(df_v5$pointerfood4 == 6, 0,
+                                ifelse(df_v5$pointerfood4 == 5, 0.5, 1))
+df_v5$mind_vegetales  <- ifelse(df_v5$pointerfood5 > 4, 1,
+                                ifelse(df_v5$pointerfood5 > 2, 0.5, 0))
+df_v5$mind_frutos     <- ifelse(df_v5$pointerfood6 > 3, 1,
+                                ifelse(df_v5$pointerfood6 == 3, 0.5, 0))
+df_v5$mind_fish       <- ifelse(df_v5$pointerfood7 > 3, 1,
+                                ifelse(df_v5$pointerfood7 == 3, 0.5, 0))
+df_v5$mind_bird       <- ifelse(df_v5$pointerfood8 < 3, 0,
+                                ifelse(df_v5$pointerfood8 == 3, 0.5, 1))
+df_v5$mind_cheese     <- ifelse(df_v5$pointerfood9 == 6, 0,
+                                ifelse(df_v5$pointerfood9 > 1, 0.5, 1))
+df_v5$mind_frijol     <- ifelse(df_v5$pointerfood10 > 4, 1,
+                                ifelse(df_v5$pointerfood10 > 2, 0.5, 1)) 
+df_v5$mind_wine       <- ifelse(df_v5$ifa19 == 1 | df_v5$ifa19 > 6, 0,
+                                ifelse(df_v5$ifa19 > 1, 0.5, 1))
+df_v5$mind_nuts       <- ifelse(df_v5$pointerfood11 > 4, 1,
+                                ifelse(df_v5$pointerfood11 > 1, 0.5, 0))
+df_v5$mind_meat       <- ifelse(df_v5$pointerfood12 == 6, 0,
+                                ifelse(df_v5$pointerfood12 == 5, 0.5, 1))
+df_v5$mind_bread      <- ifelse(df_v5$pointerfood13 == 6, 1,
+                                ifelse(df_v5$pointerfood13 > 3, 0.5, 0))
+df_v5$mind_margarine  <- ifelse(df_v5$pointerfood14 > 4, 0,
+                                ifelse(df_v5$pointerfood14 > 2, 0.5, 1))
+
+df_v5$mind_score <- df_v5$mind_oil + df_v5$mind_fritura + df_v5$mind_green + df_v5$mind_sweet +
+  df_v5$mind_vegetales + df_v5$mind_frutos + df_v5$mind_fish + df_v5$mind_bird +
+  df_v5$mind_cheese + df_v5$mind_frijol + df_v5$mind_wine + df_v5$mind_nuts +
+  df_v5$mind_meat + df_v5$mind_bread + df_v5$mind_margarine
+
+#---------------------------------ESCALAR COGNICIÓN-----------------------------
+
+library(dplyr)
+
+EscalarCognicion <- function(df,
+                                 vars,  
+                                 group_vars = NULL,
+                                 reverse_vars = NULL,
+                                 method = c("z","robust_z","minmax"),
+                                 suffix = "_z") {
+  method <- match.arg(method)
+  stopifnot(is.data.frame(df))
+  
+  vars_present <- intersect(vars, names(df))
+  if (length(vars_present) == 0)
+    stop("Ninguna variable de 'vars' está en el data frame.")
+  
+  calc_fun <- switch(
+    method,
+    z = function(x){
+      m <- mean(x, na.rm=TRUE); s <- sd(x, na.rm=TRUE)
+      if (is.na(s) || s == 0) return(rep(NA_real_, length(x)))
+      (x - m)/s},
+    robust_z = function(x){
+      med <- median(x, na.rm=TRUE)
+      md  <- mad(x, constant=1.4826, na.rm=TRUE)
+      if (is.na(md) || md == 0) return(rep(NA_real_, length(x)))
+      (x - med)/md},
+    minmax = function(x){
+      r <- range(x, na.rm=TRUE); d <- diff(r)
+      if (!is.finite(d) || d == 0) return(rep(NA_real_, length(x)))
+      (x - r[1]) / d})
+  
+  if (!is.null(group_vars)) df <- df %>% group_by(across(all_of(group_vars)))
+  
+  df %>%
+    mutate(across(all_of(vars_present), ~ {
+      x <- suppressWarnings(as.numeric(.x))
+      
+      if (!is.null(reverse_vars) && cur_column() %in% reverse_vars) x <- -x
+
+      calc_fun(x)
+    }, .names = "{.col}{suffix}")) %>%
+    ungroup()
+}
+

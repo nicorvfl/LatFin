@@ -78,7 +78,7 @@ df_flags <- df_v4 %>%
 
 Flowchart <- df_flags %>%
   as_fc(label = "Participants assessed by eligibility") %>%
-  fc_filter(Randomization == "Yes",
+  fc_filter(Randomization == "Yes" & !is.na(Arm),
             label = "Randomized Participants",
             show_exc = TRUE) %>%
   fc_split(Arm)%>%
@@ -105,8 +105,6 @@ Flowchart <- df_flags %>%
             text_pattern = "{label}\n n = {n}")%>%
   fc_draw()%>%
   fc_export("FlowChart.png", width = 2900, height = 3900, res = 400)
-
-
 
 
 

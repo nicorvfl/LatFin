@@ -17,6 +17,27 @@ df_v5 <- df_v4 %>%
     ADH_ActFis = sum(ef_count, na.rm = TRUE), #suma total
     PorcentajeActFis = (ADH_ActFis / 416) * 100) #porcentaje
 
+#Crudo por centro
+ggplot(df_v5, aes(y = ef_count,
+                  x = center,
+                  fill = Eventos))+
+  geom_boxplot()+
+  theme_light()
+
+#Cantidad de sesiones totales por centro
+ggplot(df_v5, aes(x = center,
+                  y = ADH_ActFis))+
+  geom_boxplot()+
+  theme_light()
+
+#Porcentaje por centro
+ggplot(df_v5, aes(x = center,
+                  y = PorcentajeActFis))+
+  geom_point(size = 3, alpha = 0.1, 
+             col = "#8968CD")+
+  geom_boxplot(alpha = 0)+
+  theme_light()
+
 #-------------------------------------------------------------------------------
 #Actividad cognitiva
 
@@ -29,8 +50,20 @@ df_v5 <- df_v5 %>%
     ADH_Cogni = sum(ec_count, na.rm = TRUE), #suma total
     PorcentajeCogni = (ADH_Cogni / 728) * 100) #porcentaje
 
+#Visualización en bruto por evento
+ggplot(df_v5, aes(x = center,
+                  y = ec_count, fill = Eventos))+
+  geom_boxplot()+
+  theme_light()
+
+#Ahora vamos con el porcentaje
+ggplot(df_v5, aes(x = center, y = PorcentajeCogni))+
+  geom_boxplot()+theme_light()
+
 #-------------------------------------------------------------------------------
 #Control cardiovascular
+#Me faltan reuniones porque no están en el dataset.
+
 df_v5 <- df_v5 %>%
   group_by(record_id)%>%
   mutate(
@@ -40,6 +73,11 @@ df_v5 <- df_v5 %>%
                mgr_11grupal1, mgr_12grupal1)),
       na.rm = TRUE),
     PorcentajeSalud = (ADH_Salud / 20) * 100)
+
+ggplot(df_v5, aes(x = center,
+                  y = PorcentajeSalud))+
+  geom_boxplot()+theme_light()
+
 
 #-------------------------------------------------------------------------------
 #Nutrición
@@ -54,6 +92,12 @@ df_v5 <- df_v5 %>%
     ADH_NutriTel = sum(nis_count_telefonica, na.rm = TRUE),
     PorcentajeNutriTel = (ADH_NutriTel / 34) * 100)
 
+ggplot(df_v5, aes(x = center,
+                  y = PorcentajeNutri))+
+  geom_point(size = 3, alpha = 0.1, 
+             col = "#8968CD")+
+  geom_boxplot(alpha = 0) 
+
 #-------------------------------------------------------------------------------
 #Adherencia total
 
@@ -62,5 +106,4 @@ df_v5 <- df_v5 %>%
     AdherenciaTotal = rowMeans(
       cbind(PorcentajeActFis, PorcentajeCogni, PorcentajeSalud, PorcentajeNutri),
       na.rm = TRUE))
-
 

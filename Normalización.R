@@ -62,7 +62,11 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "mgr_1grupal1","mgr_2grupal1","mgr_3grupal1","mgr_4grupal1",
              "mgr_4grupal1", "mgr_5grupal1","mgr_5grupal2","mgr_6grupal1",
              "mgr_6grupal2","mgr_7grupal1","mgr_8grupal1","mgr_9grupal1",
-             "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1")
+             "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1",
+             "pointerfood1", "pointerfood2", "pointerfood3", "pointerfood4", 
+             "pointerfood5","pointerfood6", "pointerfood7", "pointerfood8",
+             "pointerfood9", "pointerfood10", "pointerfood11", 
+             "pointerfood12", "pointerfood13", "pointerfood14", "ifa19")
 
 
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
@@ -383,10 +387,22 @@ df_v4 <- df_v4 %>%
     EvaluacionCompleta = rowSums(across(all_of(TestNps), ~ !is.na(.))) >= 3)%>%
   mutate(
     EvaluacionCompleta = if_else(
-      EvaluacionCompleta == TRUE, 1,0
-    )
-  )
+      EvaluacionCompleta == TRUE, 1,0))
 
+#-------------------------------------------------------------------------------
+#Escalamos las tareas cognitivas
+#-------------------------------------------------------------------------------
 
+tiempos <- c("trail_a_error","trail_b_error","trail_interrupt_test",
+             "tima_trail_a","tima_trail_b",
+             "tiempo_parte_a","tiempo_parte_b","tiempo_parte_c","tiempo1","tiempo2")
+
+df_v5 <- EscalarCognicion(
+  df_v5,
+  vars         = TestNps,
+  group_vars   = "Eventos",
+  reverse_vars = tiempos,
+  method       = "z",   
+  suffix       = "_z")
 
 
