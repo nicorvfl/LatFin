@@ -2,7 +2,8 @@ library(dplyr)
 library(arsenal)
 library(forcats)
 
-df_base_rdz <- df_v4 %>%
+
+df_base_rdz <- df_v5 %>%
   filter(Eventos == "base", Randomization == "Yes") %>%
   distinct(record_id, .keep_all = TRUE) %>%
   mutate(Arm = factor(Arm))
@@ -51,7 +52,26 @@ df_tab1 <- df_base_rdz %>%
     vhs           = as.numeric(vhs),
     insulinemia   = as.numeric(insulinemia),
     FRS           = as.factor(Fra_Clase),
-    cdr           = as.factor(CDR)
+    cdr           = as.factor(CDR),
+    imm_recalltotal_z = as.numeric(imm_recalltotal),
+    delayed_recalltotal_z = as.numeric(delayed_recalltotal),
+    FCSRT_imm = as.numeric(totalfreerecall_2),
+    FCSRT_dif = as.numeric(totales_tardia),
+    wais = as.numeric(score_wais_bruto),
+    dig_dir = as.numeric(forwardtotcorrect),
+    dig_inv = as.numeric(backwardtotcorrect),
+    dig_sec = as.numeric(sequencetotcorrect),
+    tmta = as.numeric(tima_trail_a),
+    tmtb = as.numeric(tima_trail_b),
+    stroop_p = as.numeric(stroop_p),
+    stroop_c = as.numeric(stroop_c),
+    stroop_pc = as.numeric(stroop_pc),
+    cst_a = as.numeric(csta),
+    cst_b = as.numeric(cstb),
+    cst_c = as.numeric(cstc),
+    flu_sem = as.numeric(animaltotcorrect_vc),
+    flu_fon_p = as.numeric(p_total_score),
+    flu_fon_m = as.numeric(m_total_score)
   )
 
 labels(df_tab1$Arm)               <- "Group"
@@ -88,6 +108,28 @@ labels(df_tab1$vhs)               <- "ESR (mm/hr)"
 labels(df_tab1$insulinemia)       <- "Insulin (µIU/mL)"
 labels(df_tab1$FRS)               <- "FRS CVD risk and prevalence"
 
+#Cognitivas
+labels(df_tab1$imm_recalltotal_z)<- "Logical Memory - Immediate"
+labels(df_tab1$delayed_recalltotal_z)<- "Logical Memory - Delayed"
+labels(df_tab1$FCSRT_imm)<- "FCSRT Immediate"
+labels(df_tab1$FCSRT_dif)<- "FCSRT Delayed"
+labels(df_tab1$wais)<- "Clave de Números"
+labels(df_tab1$dig_dir)<- "Digit Span Forward"
+labels(df_tab1$dig_inv)<- "Digit Span Backward"
+labels(df_tab1$dig_sec)<- "Digit Span Sequencing"
+labels(df_tab1$tmta)<- "Trail Making Test A"
+labels(df_tab1$tmtb)<- "Trail Making Test B"
+labels(df_tab1$stroop_p)<- "Stroop P"
+labels(df_tab1$stroop_c)<- "Stroop C"
+labels(df_tab1$stroop_pc)<- "Stroop PC"
+labels(df_tab1$cst_a)<- "Concept Shifting Test A"
+labels(df_tab1$cst_b)<- "Concept Shifting Test B"
+labels(df_tab1$cst_c)<- "Concept Shifting Test C"
+labels(df_tab1$flu_sem)<- "Semantic Fluency"
+labels(df_tab1$flu_fon_p)<- "Phonological Fluency P"
+labels(df_tab1$flu_fon_m)<- "Phonological Fluency m"
+
+
 ctrl <- tableby.control(
   test = TRUE, total = TRUE, na.include = FALSE,
   numeric.stats = c("meansd","medianq1q3","range"),
@@ -119,7 +161,20 @@ tab_B <- tableby(
 )
 sum_B <- summary(tab_B, title = "B. Clinical & Laboratory")
 
-write2(list(sum_A, sum_B),
+tab_C <- tableby(
+  Arm ~ imm_recalltotal_z + delayed_recalltotal_z +
+    FCSRT_imm + FCSRT_dif + wais +
+    dig_dir + dig_inv + dig_sec +
+    tmta + tmtb +
+    stroop_p + stroop_c + stroop_pc +
+    cst_a + cst_b + cst_c +
+    flu_sem + flu_fon_p + flu_fon_m,
+  data = df_tab1, control = ctrl
+)
+sum_C <- summary(tab_C, title = "C. Cognitive Measures")
+
+
+write2(list(sum_A, sum_B, sum_C),
        file  = "table1.1.html",
        title = "Table 1. Baseline characteristics by group")
 
