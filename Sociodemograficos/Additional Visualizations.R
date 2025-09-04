@@ -29,8 +29,9 @@ Education <- ggplot(Baseline, aes(x = center,
                                         height = 0.2),
              alpha = 0.5)+
   geom_boxplot(alpha = 0)+
+  labs(title = "Education years across centers")+
   theme_light()
 
 ggsave("Sociodemograficos/DistEduc.png",
-       plot = Education, width = 8, height = 6, dpi = 300,
+       plot = Education, width = 14, height = 6, dpi = 300,
        bg = "white")
