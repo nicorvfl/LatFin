@@ -53,8 +53,6 @@ InicioIntervencionFlex <- df_bruto %>%
     numero = sum(!is.na((gf_date_base))))
 InicioIntervencionFlex #526
 
-
-
 #-------------------------------------------------------------------------------
 #Flowchart 
 #-------------------------------------------------------------------------------
@@ -67,44 +65,38 @@ library(flowchart)
 # -------------------------
 
 df_flags <- df_v4 %>%
+  mutate(Eventos = trimws(tolower(as.character(Eventos))),
+         EvaluacionCompleta = as.integer(EvaluacionCompleta)) %>%
   group_by(record_id, Randomization, Arm) %>%
   summarise(
-    base_complete = any(Eventos == "base" & EvaluacionCompleta == 1, na.rm = TRUE),
-    m6_complete   = any(Eventos == "6m"   & EvaluacionCompleta == 1, na.rm = TRUE),
-    m12_complete = any(Eventos == "12m" & EvaluacionCompleta == 1, na.rm = TRUE),
-    m18_complete = any(Eventos == "18m" & EvaluacionCompleta == 1, na.rm = TRUE),
-    m24_complete = any(Eventos == "24m" & EvaluacionCompleta == 1, na.rm = TRUE),
-    .groups = "drop")
+    base_complete = any(Eventos == "base" & EvaluacionCompleta == 1, na.rm=TRUE),
+    m6_complete   = any(Eventos == "6m"   & EvaluacionCompleta == 1, na.rm=TRUE),
+    m12_complete  = any(Eventos == "12m"  & EvaluacionCompleta == 1, na.rm=TRUE),
+    m18_complete  = any(Eventos == "18m"  & EvaluacionCompleta == 1, na.rm=TRUE),
+    m24_complete  = any(Eventos == "24m"  & EvaluacionCompleta == 1, na.rm=TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    TieneSeguimiento = base_complete & (m6_complete | m12_complete | m18_complete | m24_complete),
+    upto6  = base_complete | m6_complete,
+    upto12 = base_complete | m6_complete | m12_complete,
+    upto18 = base_complete | m6_complete | m12_complete | m18_complete,
+    upto24 = base_complete | m6_complete | m12_complete | m18_complete | m24_complete
+  )
 
 Flowchart <- df_flags %>%
   as_fc(label = "Participants assessed by eligibility") %>%
   fc_filter(Randomization == "Yes" & !is.na(Arm),
-            label = "Randomized Participants",
-            show_exc = TRUE) %>%
-  fc_split(Arm)%>%
-  fc_filter(base_complete,
-            label = "Baseline assessment",
-            show_exc = FALSE,
-            perc_total = TRUE,
+            label = "Randomized Participants", show_exc = TRUE,
             text_pattern = "{label}\n n = {n}") %>%
-  fc_filter(m6_complete,
-            label = "6-month assessment", show_exc = FALSE,
-            perc_total = TRUE,
-            text_pattern = "{label}\n n = {n}") %>%
-  fc_filter(m12_complete, 
-            label = "12-month assessment", show_exc = FALSE,
-            perc_total = TRUE,
-            text_pattern = "{label}\n n = {n}")%>%
-  fc_filter(m18_complete,
-            label = "18-month assessment", show_exc = FALSE,
-            perc_total = TRUE,
-            text_pattern = "{label}\n n = {n}")%>%
-  fc_filter(m24_complete,
-            label = "24-month assessment", show_exc = FALSE,
-            perc_total = FALSE,
-            text_pattern = "{label}\n n = {n}")%>%
-  fc_draw()%>%
-  fc_export("FlowChart.png", width = 2900, height = 3900, res = 400)
-
-
-
+  fc_split(Arm, text_pattern = "{label}\n n = {n}") %>%
+  fc_filter(base_complete, label = "Baseline assessment",
+            show_exc = FALSE, text_pattern = "{label}\n n = {n}") %>%
+  fc_filter(TieneSeguimiento, label = "Baseline + ≥1 follow-up complete",
+            show_exc = FALSE, text_pattern = "{label}\n n = {n}") %>%
+  fc_filter(upto6,  label = "6-month assessment",  show_exc = FALSE, text_pattern = "{label}\n n = {n}") %>%
+  fc_filter(upto12, label = "12-month assessment", show_exc = FALSE, text_pattern = "{label}\n n = {n}") %>%
+  fc_filter(upto18, label = "18-month assessment", show_exc = FALSE, text_pattern = "{label}\n n = {n}") %>%
+  fc_filter(upto24, label = "24-month assessment", show_exc = FALSE, text_pattern = "{label}\n n = {n}") %>%
+  fc_draw() %>%
+  fc_export("FlowChart.png", width = 2900, height = 4000, res = 380)
