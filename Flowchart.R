@@ -12,49 +12,6 @@
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-#Primero voy a calcular todo a mano para doble-check y después 
-#usamos una librería que lo hace solo.
-#-------------------------------------------------------------------------------
-
-#¿Cuántos randomizados hay?
-num_rdz <- df_v4 %>%
-  filter(Eventos == "base") %>%
-  #group_by(Arm) %>%
-  summarise(suma = sum(Randomization == "Yes", na.rm = TRUE))
-num_rdz
-#1111 randomizados
-#551 flexibles y 560 sistemáticos
-
-#¿Cuántos randomizados hay por centro?
-num_rdz_center <- df_v4 %>%
-  filter(Eventos == "base")%>%
-  group_by(center) %>%
-  summarise(suma = sum(Randomization == "Yes", na.rm = TRUE))
-num_rdz_center
-
-#¿Cuántas evaluaciones hay?
-NumEv <- CantidadEvaluaciones(df_v4)
-NumEv <- NumEv %>%
-  filter(Eventos != c("pre","scr"))
-View(NumEv)
-
-library(reshape2)
-
-#baseline (1079), 6m (938), 12m (879), 18m (829), 24m (852)
-
-#¿Cuántas personas iniciaron la intervención?
-InicioIntervencionSis <- df_bruto %>%
-  summarise(
-    numero = sum(!is.na((ef_date_base))))
-InicioIntervencionSis #539
-
-InicioIntervencionFlex <- df_bruto %>%
-  summarise(
-    numero = sum(!is.na((gf_date_base))))
-InicioIntervencionFlex #526
-
-
-#-------------------------------------------------------------------------------
 #Flowchart 
 #-------------------------------------------------------------------------------
 
@@ -101,4 +58,25 @@ Flowchart <- df_flags %>%
   fc_filter(upto24, label = "24-month assessment", show_exc = FALSE, text_pattern = "{label}\n n = {n}") %>%
   fc_draw() %>%
   fc_export("FlowChart.png", width = 2900, height = 4000, res = 380)
+
+
+#-------------------------------------------------------------------------------
+
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+
+dfCuenta <- df_flags %>%
+  select(Arm, base_complete, m6_complete,
+         m12_complete, m18_complete, m24_complete) %>%
+  melt(id.var = "Arm") %>%
+  group_by(Arm, variable) %>%
+  summarise(total = sum(value, na.rm = TRUE), .groups = "drop")
+
+ggplot(dfCuenta, aes(x = variable, y = total, fill = Arm)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Evaluación", y = "N completos") +
+  theme_minimal()
+
+
 
