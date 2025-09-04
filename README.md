@@ -30,7 +30,7 @@ Esta visualización nos será de utilidad para observar el flujo de participante
   
 (5) Este flow recorre hasta la evaluación del mes 24. 
 
-## Tabla 1
+## Tabla1
 
 La tabla 1 está dividida en 3 grandes secciones: 
 - Datos sociodemográficos y del estilo de vida.
