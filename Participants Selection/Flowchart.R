@@ -112,12 +112,12 @@ dfCuenta <- df_flags %>%
   group_by(Arm, variable) %>%
   summarise(total = sum(value, na.rm = TRUE), .groups = "drop")
 
-conteo <- ggplot(dfCuenta, aes(x = variable, y = total, fill = Arm)) +
+conteo_corregido <- ggplot(dfCuenta, aes(x = variable, y = total, fill = Arm)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(x = "Event", y = "Complete Assessments") +
-  theme_minimal()
+  theme_light()
 
 ggsave("Participants Selection/conteo.png",
-       plot = conteo, width = 8, height = 6, dpi = 300)
-
+       plot = conteo_corregido, width = 8, height = 6, dpi = 300,
+       bg = "white")
 
