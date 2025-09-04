@@ -7,7 +7,7 @@ En el siguiente repositorio se podrá visualizar la toma de decisiones con cada 
 ## Índice
 - [Objetivo](#objetivo)
 - [FlowChart](#FlowChart)
-- [Estructura del repositorio](#estructura-del-repositorio)
+- [Tabla 1](#Tabla1)
 - [Requisitos](#requisitos)
 - [Instalación y primer arranque](#instalación-y-primer-arranque)
 - [Cómo reproducir los análisis](#cómo-reproducir-los-análisis)
@@ -30,4 +30,14 @@ Esta visualización nos será de utilidad para observar el flujo de participante
   
 (5) Este flow recorre hasta la evaluación del mes 24. 
 
+## Tabla1
 
+La tabla 1 está dividida en 3 grandes secciones: 
+- Datos sociodemográficos y del estilo de vida.
+- Datos clínicos y de laboratorio.
+- Datos cognitivos.
+  
+Los datos de la tabla 1 corresponden todos al evento "baseline". Asimismo, se los divide por Arm en Flexibles y Sistemáticos. Se agrega también una tabla con ambos grupos juntos. 
+Al momento, se presentan para las variables continuas (a) la media, (b) el rango y (c) el mínimo y el máximo. Para las variables categóricas o discretas se presenta (1) la cantidad (n) y (2) el porcentaje.  
+
+De forma adicional, la librería utilizada calcula una prueba de hipótesis para cada brazo. Este p valor no es del todo confiable ya que la librería solicita especificar el test (ej. ANOVA vs Kruskall Wallis) de acuerdo al tipo de distribución. Dejo en sus manos la opción de hacerlo o no.
