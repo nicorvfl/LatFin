@@ -100,3 +100,24 @@ Flowchart <- df_flags %>%
   fc_filter(upto24, label = "24-month assessment", show_exc = FALSE, text_pattern = "{label}\n n = {n}") %>%
   fc_draw() %>%
   fc_export("FlowChart.png", width = 2900, height = 4000, res = 380)
+
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+
+dfCuenta <- df_flags %>%
+  select(Arm, base_complete, m6_complete,
+         m12_complete, m18_complete, m24_complete) %>%
+  melt(id.var = "Arm") %>%
+  group_by(Arm, variable) %>%
+  summarise(total = sum(value, na.rm = TRUE), .groups = "drop")
+
+conteo <- ggplot(dfCuenta, aes(x = variable, y = total, fill = Arm)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Event", y = "Complete Assessments") +
+  theme_minimal()
+
+ggsave("Participants Selection/conteo.png",
+       plot = conteo, width = 8, height = 6, dpi = 300)
+
+
