@@ -1,5 +1,5 @@
 # LatFin — Avances y visualizaciones
-
+ 
 **Bienvenida**  
 En el siguiente repositorio se podrá visualizar la toma de decisiones con cada campo del proyecto.
 ---
