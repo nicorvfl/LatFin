@@ -121,3 +121,35 @@ ggsave("Participants Selection/conteo.png",
        plot = conteo_corregido, width = 8, height = 6, dpi = 300,
        bg = "white")
 
+#-------------------------------------------------------------------------------
+#Adición de gráficos para doble check
+
+Baseline <- df_v4 %>%
+  filter(Eventos == "base")%>%
+  filter(Randomization == "Yes")
+
+Arm <- ggplot(Baseline, aes(x = center,
+                     fill = Arm))+
+  geom_bar(position = "dodge")+
+  geom_text(stat = "count", aes(label = after_stat(count)),
+            position = position_dodge(width = 0.9),
+            vjust = -0.3)+
+  theme_light()
+
+ggsave("Participants Selection/Arm.svg",
+       plot = Arm, width = 9, height = 6, units = "in",
+       bg = "white")
+
+#Randomizados y fallas de screening por centro
+Screen <- df_v4 %>%
+  filter(Eventos == "base")
+
+Screening <- ggplot(Screen, aes(x = center,
+                   fill = Randomization))+
+  geom_bar(position = "dodge")+
+  labs(title = "Screen failures by center")+
+  theme_light()
+
+ggsave("Participants Selection/screenfailures.svg",
+       plot = Screening, width = 11, height = 6, units = "in",
+       bg = "white")
