@@ -28,9 +28,9 @@ Esta visualización nos será de utilidad para observar el flujo de participante
 - De los sujetos randomizados, se parte en (a) Flexibles y (b) Sistemáticos. 
 - A partir de acá, el gráfico se abre y comienza a contabilizar la cantidad de evaluaciones que tiene cada participante. ¿Cómo se contabiliza esa cantidad? Para ello, creamos una función que coloca un "Completo" en caso de que al menos 3 tareas **no** sean un dato incompleto. Por ejemplo:  
 
-ID     | MMSE  |  DigitSpan  |  FreeRecall  |  EvaluacionCompleta  |
-312-2     23         4              12             Completa
-312-2     NA         4              12             Incompleta
+ID     | MMSE  |  DigitSpan  |  FreeRecall  |  EvaluacionCompleta  |  
+312-2     23         4              12             Completa  
+312-2     NA         4              12             Incompleta  
   
 (5) Este flow recorre hasta la evaluación del mes 24. 
 
