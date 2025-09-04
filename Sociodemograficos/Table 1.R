@@ -175,8 +175,10 @@ sum_C <- summary(tab_C, title = "C. Cognitive Measures")
 
 write2(
   list(sum_A, sum_B, sum_C),
-  file  = "Sociodemograficos/table1.1.html",
+  file  = "Sociodemograficos/Table1.html",
   title = "Table 1. Baseline characteristics by group")
 
-browseURL(normalizePath("Sociodemograficos/table1.1.html"))
+# Abrir en el navegador
+browseURL(normalizePath("Sociodemograficos/Table1.html"))
+
 
