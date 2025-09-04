@@ -2,7 +2,6 @@ library(dplyr)
 library(arsenal)
 library(forcats)
 
-
 df_base_rdz <- df_v4 %>%
   filter(Eventos == "base", Randomization == "Yes") %>%
   distinct(record_id, .keep_all = TRUE) %>%
@@ -178,7 +177,30 @@ write2(
   file  = "Sociodemograficos/Table1.html",
   title = "Table 1. Baseline characteristics by group")
 
-# Abrir en el navegador
+
+
+dir.create("Sociodemograficos", showWarnings = FALSE)
+
+# 2. Guardar el HTML en esa carpeta
+write2(
+  list(sum_A, sum_B, sum_C),
+  file  = "Sociodemograficos/Table1.html",
+  title = "Table 1. Baseline characteristics by group"
+)
+
+# 3. Abrirlo en el navegador
 browseURL(normalizePath("Sociodemograficos/Table1.html"))
 
+
+
+# 1. Crear la carpeta
+dir.create(file.path(getwd(), "Sociodemograficos"), showWarnings = FALSE)
+
+# 2. Comprobar que existe
+dir.exists("Sociodemograficos")
+
+write2(
+  list(sum_A, sum_B, sum_C),
+  file  = file.path(getwd(), "Sociodemograficos", "Table1.html"),
+  title = "Table 1. Baseline characteristics by group")
 
