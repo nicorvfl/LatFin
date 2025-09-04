@@ -1,3 +1,6 @@
+dir.create(file.path(getwd(), "Estructura"), showWarnings = FALSE)
+dir.exists("Estructura")
+
 library(readr)
 library(dplyr)
 library(tidyverse)
