@@ -173,7 +173,6 @@ tab_C <- tableby(
 )
 sum_C <- summary(tab_C, title = "C. Cognitive Measures")
 
-
 write2(list(sum_A, sum_B, sum_C),
        file  = "table1.1.html",
        title = "Table 1. Baseline characteristics by group")
