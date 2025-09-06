@@ -1,67 +1,123 @@
-# LatFin — Avances y visualizaciones
+# LatFin — Avances y Visualizaciones
 
-**Bienvenida**  
-En el siguiente repositorio se podrá visualizar la toma de decisiones con cada campo del proyecto.
+## Bienvenida
+Este repositorio va a documentar algunas discuiones, el procesamiento y las visualizaciones clave del proyecto.  
+Incluye scripts, tablas y figuras organizadas para su análisis y seguimiento.
+
 ---
 
 ## Índice
-- [Objetivo](#objetivo)
-- [FlowChart](#FlowChart)
-- [Tabla 1](#Tabla1)
-- [Adherencia](#Adherencia)
+1. [Objetivo](#objetivo)
+2. [Flowchart](#flowchart)
+3. [Tabla 1](#tabla-1)
+4. [Adherencia](#adherencia)
 
 ---
 
 ## Objetivo
-El objetivo de este repositorio es brindar (1) los scripts de código, (2) las tablas y (3) las figuras del proyecto.
+El objetivo principal de este repositorio es centralizar y poner a disposición:
+
+1. Scripts de procesamiento y análisis.
+2. Tablas descriptivas y comparativas.
+3. Figuras y visualizaciones generadas a partir de los datos del proyecto.
 
 ---
 
-## FlowChart
-Esta visualización nos será de utilidad para observar el flujo de participantes que han pasado por lo largo y lo ancho de la intervención. La estructura del Flowchart respeta los siguientes puntos:
-- Sujetos Screenados. 
-- Sujetos Randomizados. ¿Cómo se decide quién está o no randomizado? Principalmente por dos condiciones, a saber: (a) que en la variable 'rdz_yn_scr' el valor corresponda a un "1" y que en la variable 'rdz' (que asigna a una rama de la intervención) el valor no sea nulo. Por otra parte, si ha colocado un "No" en la variable 'rdz_yn_scr' (que de ahora en más será "Randomization") en caso de que su valor sea "NULL". Asimismo se ha excluido a los participantes mal randomizados de Costa Rica, a saber: "321-154","321-156","321-157","321-159","321-163". Por otra parte, se han excluido los ID's "316-3","320-24","320-39","324-60","324-73" dado que cumplían con la condición de tener un "Sí" en Randomization y un valor nulo en rdz (que de ahora en más llamaremos "Arm"). 
-- De los sujetos randomizados, se parte en (a) Flexibles y (b) Sistemáticos. 
-- A partir de acá, el gráfico se abre y comienza a contabilizar la cantidad de evaluaciones que tiene cada participante. ¿Cómo se contabiliza esa cantidad? Para ello, creamos una función que coloca un "Completo" en caso de que al menos 3 tareas **no** sean un dato incompleto.
-- Este flow recorre hasta la evaluación del mes 24.
+## Flowchart
+La visualización del flujo de participantes contempla:
 
-Finalmente agregamos un box más, que nos indica si el participante ha tenido al menos un follow-up. Es decir, si tiene (1) baseline y (2) si cuenta con al menos una evaluación de seguimiento (sea 6m, sea 12m o 24m, da lo mismo).
+- **Sujetos screenados**.
+- **Sujetos randomizados**  
+  - **Criterios**:
+    1. `rdz_yn_scr = 1`
+    2. `rdz` (rama de intervención) no nulo.
+  - **Excluidos**:
+    - `rdz_yn_scr = No` y `rdz` nulo.
+    - Participantes mal randomizados en Costa Rica:  
+      ```
+      321-154, 321-156, 321-157, 321-159, 321-163
+      ```
+    - Inconsistencias (Randomization = "Sí" pero `Arm` nulo):  
+      ```
+      316-3, 320-24, 320-39, 324-60, 324-73
+      ```
+- **Asignación a ramas**:
+  - Flexibles.
+  - Sistemáticos.
+- **Evaluaciones**:
+  - Una evaluación es "completa" si al menos 3 tareas no presentan datos incompletos.
+  - Seguimiento desde *baseline* hasta el mes 24.
+- **Indicador de seguimiento**:
+  - Participantes con *baseline* y al menos una evaluación de seguimiento (6m, 12m o 24m).
+
+---
+
+## Tabla 1
+La **Tabla 1** presenta la caracterización basal y está dividida en tres secciones:
+
+1. Datos sociodemográficos y de estilo de vida.
+2. Datos clínicos y de laboratorio.
+3. Datos cognitivos.
+
+**Características**:
+- Datos del evento `baseline`.
+- Comparación por **Arm** (*Flexibles* vs *Sistemáticos*) y total combinado.
+- Variables continuas: media, rango, mínimo y máximo.
+- Variables categóricas: frecuencia absoluta (n) y porcentaje.
+
+**Nota metodológica**:  
+El p-valor provisto por la librería es orientativo. La elección del estadístico debería basarse en la distribución de los datos.
+
+---
+
+## Adherencia
+La adherencia se calcula para **Ejercicio físico**, **Reuniones grupales**, **Estimulación cognitiva** y **Nutrición**.
+
+---
+
+### Ejercicio físico
+- **Criterios de inclusión**:
+  - Randomizados en rama sistemática.
+- **Cálculo**:
+  - Primer año: 4 sesiones/semana × 48 semanas = 192 sesiones.
+  - Segundo año: 4 sesiones/semana × 52 semanas = 208 sesiones.
+  - Total esperado: `192 + 208 = 400 sesiones`.
+  - Fórmula:
+    ```r
+    Porcentaje = (sesiones_asistidas / 400) * 100
+    ```
+- **Limitación**: no considera *dropout* ni variaciones en seguimiento.
 
 
-## Tabla1
+---
 
-La tabla 1 está dividida en 3 grandes secciones: 
-- Datos sociodemográficos y del estilo de vida.
-- Datos clínicos y de laboratorio.
-- Datos cognitivos.
-  
-Los datos de la tabla 1 corresponden todos al evento "baseline". Asimismo, se los divide por Arm en Flexibles y Sistemáticos. Se agrega también una tabla con ambos grupos juntos. 
-Al momento, se presentan para las variables continuas (a) la media, (b) el rango y (c) el mínimo y el máximo. Para las variables categóricas o discretas se presenta (1) la cantidad (n) y (2) el porcentaje.  
+### Reuniones grupales
+- **Estructura**:
+  - Ejercicio físico: 4 sesiones.
+  - Nutrición: 4 sesiones.
+  - Estimulación cognitiva: 4 sesiones.
+  - Coaching de salud: 4 sesiones.
+  - Sesiones especiales:
+    - 2 en el mes 5.
+    - 1 mensual desde mes 6 hasta completar el primer año.
+  - Segundo año: 12 sesiones adicionales.
+- **Total esperado**: `38 sesiones`.
+- **Fórmula**:
+  ```r
+  Porcentaje = (sesiones_asistidas / 38) * 100
 
-De forma adicional, la librería utilizada calcula una prueba de hipótesis para cada brazo. Este p valor no es del todo confiable ya que la librería solicita especificar el test (ej. ANOVA vs Kruskall Wallis) de acuerdo al tipo de distribución. Dejo en sus manos la opción de hacerlo o no.
+---
 
+### Estimulación Cognitiva
+- **Estructura**:
+  - Comienza en la semana 13 (mes 3).
+  - Cuenta con 7 posibilidades de entrenamiento por semana.
+  - En total tenemos:
+    - Primer año: `40 semanas * 7 sesiones = 280 sesiones`.
+    - Segundo año: `52 semanas * 7 sesiones = 364 sesiones`.
+  - El **total esperado** de sesiones sería: `644 sesiones`.
+  - **Fórmula**:
+    ```r
+    Porcentaje = (sesiones realizadas / 644) * 100
 
-## Adherencia  
-
-Construir la adherencia es un desafío dado que el constructo podría ser medido de muchas formas y son extensas las consideraciones posibles. Empezaré por la solución más "brusca" y rudimentaria.  
-
-¿Cómo medir la adherencia al **ejercicio físico**?  
-- Primero filtramos la base de datos en (1) personas randomizadas y (2) personas que estén del lado de la intervención sistemática.
-- Luego vamos a calcular el total de sesiones de ejercicio físico. La variable está dividida en 4 días durante 48 semanas en el primer año y 52 semanas en el último año. En total, tenemos 100 semanes y 400 posibles días de entrenamiento en el gimnasio.
-- De forma rudimentaria, vamos a decir que el total de sesiones posibles de un participante son 400. ¿Por qué rudimentario? Simplemente porque no estamos considerando la posibilidad de dropout.
-- Entonces, vamos a calcular un total de reuniones (literalmente: la suma de la asistencia) y un porcentaje de asistencia (calculado como la suma total dividido la cantidad posible de reuniones multiplicado por 100).
-
-¿Cómo medir la adherencia a las **reuniones grupales**?   
-Primero: ¿cómo se estructura esta variable?  
-- Tenemos 4 iniciales de ejercicio físico.  
-- Tenemos otras 4 de nutrición.  
-- Otras 4 de estimulación cognitiva.  
-- Finalmente otras 4 más de coaching de salud.  
-- Y luego tenemos dos reuniones más en el mes 5 y a partir de acá tenemos una por mes.  
-
-Entonces, en el primer año tenemos: 4 + 4 + 4 + 4 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1.  
-En el segundo año tenemos 12 más.  
-En total, son unas: 38 sesiones posibles.  
-
-De este modo, de nuevo, calculamos el total posible y el porcentaje de reuniones a las que el participante ha asistido.
-
+  ---
