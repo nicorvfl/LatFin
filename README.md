@@ -73,6 +73,8 @@ El p-valor provisto por la librería es orientativo. La elección del estadísti
 ## Adherencia
 La adherencia se calcula para **Ejercicio físico**, **Reuniones grupales**, **Estimulación cognitiva** y **Nutrición**.
 
+---
+
 ### Ejercicio físico
 - **Criterios de inclusión**:
   - Randomizados en rama sistemática.
