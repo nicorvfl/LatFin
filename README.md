@@ -71,7 +71,7 @@ El p-valor provisto por la librería es orientativo. La elección del estadísti
 ---
 
 ## Adherencia
-La adherencia se calcula para **Ejercicio físico** y **Reuniones grupales**.
+La adherencia se calcula para **Ejercicio físico**, **Reuniones grupales**, **Estimulación cognitiva** y **Nutrición**.
 
 ### Ejercicio físico
 - **Criterios de inclusión**:
@@ -105,3 +105,17 @@ La adherencia se calcula para **Ejercicio físico** y **Reuniones grupales**.
   Porcentaje = (sesiones_asistidas / 38) * 100
 
 ---
+
+### Estimulación Cognitiva
+- **Estructura**:
+  - Comienza en la semana 13 (mes 3).
+  - Cuenta con 7 posibilidades de entrenamiento por semana.
+  - En total tenemos:
+    - Primer año: `40 semanas * 7 sesiones = 280 sesiones`.
+    - Segundo año: `52 semanas * 7 sesiones = 364 sesiones`.
+  - El **total esperado** de sesiones sería: `644 sesiones`.
+  - **Fórmula**:
+    ```r
+    Porcentaje = (sesiones realizadas / 644) * 100
+
+  ---
