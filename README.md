@@ -22,9 +22,11 @@ Esta visualización nos será de utilidad para observar el flujo de participante
 - Sujetos Screenados. 
 - Sujetos Randomizados. ¿Cómo se decide quién está o no randomizado? Principalmente por dos condiciones, a saber: (a) que en la variable 'rdz_yn_scr' el valor corresponda a un "1" y que en la variable 'rdz' (que asigna a una rama de la intervención) el valor no sea nulo. Por otra parte, si ha colocado un "No" en la variable 'rdz_yn_scr' (que de ahora en más será "Randomization") en caso de que su valor sea "NULL". Asimismo se ha excluido a los participantes mal randomizados de Costa Rica, a saber: "321-154","321-156","321-157","321-159","321-163". Por otra parte, se han excluido los ID's "316-3","320-24","320-39","324-60","324-73" dado que cumplían con la condición de tener un "Sí" en Randomization y un valor nulo en rdz (que de ahora en más llamaremos "Arm"). 
 - De los sujetos randomizados, se parte en (a) Flexibles y (b) Sistemáticos. 
-- A partir de acá, el gráfico se abre y comienza a contabilizar la cantidad de evaluaciones que tiene cada participante. ¿Cómo se contabiliza esa cantidad? Para ello, creamos una función que coloca un "Completo" en caso de que al menos 3 tareas **no** sean un dato incompleto. 
-  
-(5) Este flow recorre hasta la evaluación del mes 24. 
+- A partir de acá, el gráfico se abre y comienza a contabilizar la cantidad de evaluaciones que tiene cada participante. ¿Cómo se contabiliza esa cantidad? Para ello, creamos una función que coloca un "Completo" en caso de que al menos 3 tareas **no** sean un dato incompleto.
+- Este flow recorre hasta la evaluación del mes 24.
+
+Finalmente agregamos un box más, que nos indica si el participante ha tenido al menos un follow-up. Es decir, si tiene (1) baseline y (2) si cuenta con al menos una evaluación de seguimiento (sea 6m, sea 12m o 24m, da lo mismo).
+
 
 ## Tabla1
 
@@ -49,5 +51,16 @@ Construir la adherencia es un desafío dado que el constructo podría ser medido
 - De forma rudimentaria, vamos a decir que el total de sesiones posibles de un participante son 400. ¿Por qué rudimentario? Simplemente porque no estamos considerando la posibilidad de dropout.
 - Entonces, vamos a calcular un total de reuniones (literalmente: la suma de la asistencia) y un porcentaje de asistencia (calculado como la suma total dividido la cantidad posible de reuniones multiplicado por 100).
 
+¿Cómo medir la adherencia a las **reuniones grupales**?  
+Primero: ¿cómo se estructura esta variable?  
+Tenemos 4 iniciales de ejercicio físico.  
+Tenemos otras 4 de nutrición.  
+Otras 4 de estimulación cognitiva.  
+Finalmente otras 4 más de coaching de salud.  
+Y luego tenemos dos reuniones más en el mes 5 y a partir de acá tenemos una por mes.  
+Entonces, en el primer año tenemos: 4 + 4 + 4 + 4 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1.  
+En el segundo año tenemos 12 más.  
+En total, son unas: 38 sesiones posibles.  
 
+De este modo, de nuevo, calculamos el total posible y el porcentaje de reuniones a las que el participante ha asistido.
 
