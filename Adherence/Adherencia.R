@@ -92,7 +92,7 @@ TMsession <- ggplot(ReunionGrupal, aes(x = center, y = PorcentajeReu))+
   labs(x = "Center", y = "% adherence to team-groups sessions",
        title = "% Team Groups sessions by center")+
   theme_light()
-
+TMsession
 ggsave("Adherence/TMsession.png",
        plot = TMsession, width = 12, height = 6, dpi = 300, bg = "white")
 #-------------------------------------------------------------------------------
@@ -113,4 +113,30 @@ TablaSesionesTM <- MediaReu %>%
 TablaSesionesTM
 gtsave(TablaSesionesEF, "Adherence/TablaSesionesTM.html")
 
+#-------------------------------------------------------------------------------
+#Estimulación cognitiva
 
+PorcentajeMedioEC <- Adherencia %>%
+  group_by(record_id)%>%
+  mutate(
+    BrutoEC = sum(ec_count, na.rm = TRUE),  #sesiones en crudo
+    PorcentajeEC = (BrutoEC / 644) * 100)%>%#porcentaje de sesiones
+  filter(Eventos == "base")
+
+#Media por centro
+MediaEC <- PorcentajeMedioEC %>%
+  group_by(center)%>%
+  summarise(
+    mediaEF = mean(PorcentajeEC))
+MediaEC
+
+#Número bruto de sesiones
+RowCE <- ggplot(df_v4, aes(x = center, y = ec_count,
+                  fill = Eventos))+
+  geom_boxplot()+
+  labs(title = "Row number of cognitive stimulation sessions")+
+  scale_fill_manual(values = c("base" = "#B23AEE",
+                               "12m" = "dodgerblue4"))+
+  theme_light()
+ggsave("Adherence/RowCE.png",
+       plot = RowCE, width = 12, height = 6, dpi = 300, bg = "white")
