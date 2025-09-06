@@ -17,9 +17,9 @@ Incluye scripts, tablas y figuras organizadas para su análisis y seguimiento.
 ## Objetivo
 El objetivo principal de este repositorio es centralizar y poner a disposición:
 
-1. [Scripts](./scripts/) de procesamiento y análisis.
-2. [Tablas](./tables/) descriptivas y comparativas.
-3. [Figuras](./figures/) y visualizaciones generadas a partir de los datos del proyecto.
+1. Scripts de procesamiento y análisis.
+2. Tablas descriptivas y comparativas.
+3. Figuras y visualizaciones generadas a partir de los datos del proyecto.
 
 ---
 
@@ -31,7 +31,7 @@ La visualización del flujo de participantes contempla:
   - **Criterios**:
     1. `rdz_yn_scr = 1`
     2. `rdz` (rama de intervención) no nulo.
-  - **Exclusiones**:
+  - **Excluidos**:
     - `rdz_yn_scr = No` y `rdz` nulo.
     - Participantes mal randomizados en Costa Rica:  
       ```
@@ -66,7 +66,7 @@ La **Tabla 1** presenta la caracterización basal y está dividida en tres secci
 - Variables categóricas: frecuencia absoluta (n) y porcentaje.
 
 **Nota metodológica**:  
-El p-valor provisto por la librería es orientativo. La elección entre **ANOVA** o **Kruskal-Wallis** debe basarse en la distribución de los datos.
+El p-valor provisto por la librería es orientativo. La elección del estadístico debería basarse en la distribución de los datos.
 
 ---
 
@@ -103,3 +103,5 @@ La adherencia se calcula para **Ejercicio físico** y **Reuniones grupales**.
 - **Fórmula**:
   ```r
   Porcentaje = (sesiones_asistidas / 38) * 100
+
+---
