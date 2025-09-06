@@ -1,7 +1,7 @@
 # LatFin — Avances y Visualizaciones
 
 ## Bienvenida
-Este repositorio documenta las decisiones metodológicas, el procesamiento de datos y las visualizaciones clave del proyecto **LatAm-FINGERS** (*LatFin*).  
+Este repositorio va a documentar algunas discuiones, el procesamiento y las visualizaciones clave del proyecto.  
 Incluye scripts, tablas y figuras organizadas para su análisis y seguimiento.
 
 ---
