@@ -50,9 +50,6 @@ La visualización del flujo de participantes contempla:
 - **Indicador de seguimiento**:
   - Participantes con *baseline* y al menos una evaluación de seguimiento (6m, 12m o 24m).
 
-> Ver script: [flowchart.R](./scripts/flowchart.R)  
-> Ver figura: [flowchart.svg](./figures/flowchart.svg)
-
 ---
 
 ## Tabla 1
@@ -70,9 +67,6 @@ La **Tabla 1** presenta la caracterización basal y está dividida en tres secci
 
 **Nota metodológica**:  
 El p-valor provisto por la librería es orientativo. La elección entre **ANOVA** o **Kruskal-Wallis** debe basarse en la distribución de los datos.
-
-> Ver script: [tabla1.R](./scripts/tabla1.R)  
-> Ver tabla: [tabla1.html](./tables/tabla1.html)
 
 ---
 
@@ -92,8 +86,6 @@ La adherencia se calcula para **Ejercicio físico** y **Reuniones grupales**.
     ```
 - **Limitación**: no considera *dropout* ni variaciones en seguimiento.
 
-> Ver script: [adherencia_ejercicio.R](./scripts/adherencia_ejercicio.R)  
-> Ver figura: [grafico_adherencia.svg](./figures/grafico_adherencia.svg)
 
 ---
 
