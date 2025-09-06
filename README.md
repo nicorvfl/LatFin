@@ -8,11 +8,7 @@ En el siguiente repositorio se podrá visualizar la toma de decisiones con cada 
 - [Objetivo](#objetivo)
 - [FlowChart](#FlowChart)
 - [Tabla 1](#Tabla1)
-- [Requisitos](#requisitos)
-- [Instalación y primer arranque](#instalación-y-primer-arranque)
-- [Cómo reproducir los análisis](#cómo-reproducir-los-análisis)
-- [Datos](#datos)
-
+- [Adherencia](#Adherencia)
 
 ---
 
@@ -41,3 +37,17 @@ Los datos de la tabla 1 corresponden todos al evento "baseline". Asimismo, se lo
 Al momento, se presentan para las variables continuas (a) la media, (b) el rango y (c) el mínimo y el máximo. Para las variables categóricas o discretas se presenta (1) la cantidad (n) y (2) el porcentaje.  
 
 De forma adicional, la librería utilizada calcula una prueba de hipótesis para cada brazo. Este p valor no es del todo confiable ya que la librería solicita especificar el test (ej. ANOVA vs Kruskall Wallis) de acuerdo al tipo de distribución. Dejo en sus manos la opción de hacerlo o no.
+
+
+## Adherencia  
+
+Construir la adherencia es un desafío dado que el constructo podría ser medido de muchas formas y son extensas las consideraciones posibles. Empezaré por la solución más "brusca" y rudimentaria.  
+
+¿Cómo medir la adherencia al **ejercicio físico**?  
+- Primero filtramos la base de datos en (1) personas randomizadas y (2) personas que estén del lado de la intervención sistemática.
+- Luego vamos a calcular el total de sesiones de ejercicio físico. La variable está dividida en 4 días durante 48 semanas en el primer año y 52 semanas en el último año. En total, tenemos 100 semanes y 400 posibles días de entrenamiento en el gimnasio.
+- De forma rudimentaria, vamos a decir que el total de sesiones posibles de un participante son 400. ¿Por qué rudimentario? Simplemente porque no estamos considerando la posibilidad de dropout.
+- Entonces, vamos a calcular un total de reuniones (literalmente: la suma de la asistencia) y un porcentaje de asistencia (calculado como la suma total dividido la cantidad posible de reuniones multiplicado por 100).
+
+
+
