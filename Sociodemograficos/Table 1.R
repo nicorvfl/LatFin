@@ -170,33 +170,10 @@ tab_C <- tableby(
     flu_sem + flu_fon_p + flu_fon_m,
   data = df_tab1, control = ctrl
 )
-sum_C <- summary(tab_C, title = "C. Cognitive Measures")
-
-write2(
-  list(sum_A, sum_B, sum_C),
-  file  = "Sociodemograficos/Table1.html",
-  title = "Table 1. Baseline characteristics by group")
+sum_C <- summary(tab_C, title = "C. Cognitive Tests")
 
 
-
-dir.create("Sociodemograficos", showWarnings = FALSE)
-
-# 2. Guardar el HTML en esa carpeta
-write2(
-  list(sum_A, sum_B, sum_C),
-  file  = "Sociodemograficos/Table1.html",
-  title = "Table 1. Baseline characteristics by group"
-)
-
-# 3. Abrirlo en el navegador
-browseURL(normalizePath("Sociodemograficos/Table1.html"))
-
-
-
-# 1. Crear la carpeta
 dir.create(file.path(getwd(), "Sociodemograficos"), showWarnings = FALSE)
-
-# 2. Comprobar que existe
 dir.exists("Sociodemograficos")
 
 write2(

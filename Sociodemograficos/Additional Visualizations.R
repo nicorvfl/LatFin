@@ -1,4 +1,6 @@
 library(ggplot2)
+#install.packages("svglite")
+library(svglite)
 
 #Hombres y mujeres según brazo de intervención
 
@@ -32,6 +34,7 @@ Education <- ggplot(Baseline, aes(x = center,
   labs(title = "Education years across centers")+
   theme_light()
 
-ggsave("Sociodemograficos/DistEduc.png",
-       plot = Education, width = 14, height = 6, dpi = 300,
+ggsave("Sociodemograficos/DistEduc.svg",
+       plot = Education,
+       width = 11, height = 6, units = "in",
        bg = "white")

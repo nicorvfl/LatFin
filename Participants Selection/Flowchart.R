@@ -45,8 +45,6 @@ Cuentita <- df_v4 %>%
 View(Cuentita)
 
 #¿Cuántos follow-up'
-library(dplyr)
-
 res_1follow <- df_flags %>%
   filter(Randomization == "Yes", !is.na(Arm)) %>%
   mutate(tiene_1_follow = base_complete & (m6_complete | m12_complete | m18_complete | m24_complete)) %>%

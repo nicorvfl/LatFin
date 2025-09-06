@@ -1,13 +1,10 @@
-dir.create(file.path(getwd(), "Estructura"), showWarnings = FALSE)
-dir.exists("Estructura")
-
 library(readr)
 library(dplyr)
 library(tidyverse)
 library(lubridate)
 
 #Me traigo la base de datos
-df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-08-14.csv")
+df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/copia_total_data.csv")
 
 #-------------------------------------------------------------------------------
 #----------------------- CAMBIOS SIMPLES ---------------------------------------
