@@ -60,8 +60,8 @@ ggsave("Adherence/PorcentajeSesionesFis.png",
        plot = SesionesEF, width = 12, height = 6, dpi = 300, bg = "white")
 
 #-------------------------------------------------------------------------------
-
-
+#Estimulación cognitiva
+#-------------------------------------------------------------------------------
 
 
 
