@@ -66,7 +66,12 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "pointerfood1", "pointerfood2", "pointerfood3", "pointerfood4", 
              "pointerfood5","pointerfood6", "pointerfood7", "pointerfood8",
              "pointerfood9", "pointerfood10", "pointerfood11", 
-             "pointerfood12", "pointerfood13", "pointerfood14", "ifa19")
+             "pointerfood12", "pointerfood13", "pointerfood14", "ifa19",
+             "ef_grupal1","ef_grupal2","ef_grupal3","ef_grupal4",
+             "nis_grupal1","nis_grupal2","nis_grupal3","nis_grupal4",
+             "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
+             "hmi_4capacitacion1", "hmi_4capacitacion2", "hmi_4capacitacion3",
+             "hmi_4capacitacion4")
 
 
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",

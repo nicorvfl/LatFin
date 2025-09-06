@@ -72,17 +72,18 @@ vars_reunion <- c(
   "mgr_1grupal1","mgr_2grupal1","mgr_3grupal1",
   "mgr_4grupal1","mgr_5grupal1","mgr_5grupal2","mgr_6grupal1",
   "mgr_7grupal1","mgr_6grupal2","mgr_8grupal1","mgr_9grupal1",
-  "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1")
+  "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1",
+  "hmi_4capacitacion1","hmi_4capacitacion2","hmi_4capacitacion3",
+  "hmi_4capacitacion4")
 
 ReunionGrupal <- Adherencia %>%
   filter(Eventos == "base")%>%
   mutate(
     SumaReu = rowSums(across(all_of(vars_reunion)), na.rm = TRUE),
     MaxReu  = length(vars_reunion),  
-    PorcentajeReu = (SumaReu / MaxReu) * 100)
-
+    PorcentajeReu = (SumaReu / 38) * 100)
 #-------------------------------------------------------------------------------
-ggplot(ReunionGrupal, aes(x = center, y = PorcentajeReu))+
+TMsession <- ggplot(ReunionGrupal, aes(x = center, y = PorcentajeReu))+
   geom_point(size = 3, alpha = 0.4, color = "dodgerblue4")+
   stat_summary(fun = mean, geom = "point",
                size = 3, color = "#B23AEE")+
@@ -91,6 +92,9 @@ ggplot(ReunionGrupal, aes(x = center, y = PorcentajeReu))+
   labs(x = "Center", y = "% adherence to team-groups sessions",
        title = "% Team Groups sessions by center")+
   theme_light()
+
+ggsave("Adherence/TMsession.png",
+       plot = TMsession, width = 12, height = 6, dpi = 300, bg = "white")
 #-------------------------------------------------------------------------------
 
 #Media por centro
@@ -100,5 +104,13 @@ MediaReu <- ReunionGrupal %>%
     MediaReuniones = mean(PorcentajeReu, na.rm = TRUE))
 MediaReu
 
+library(gt)
+TablaSesionesTM <- MediaReu %>%
+  gt() %>%
+  fmt_number(columns = MediaReuniones, decimals = 2) %>%
+  tab_header(
+    title = "% Adherencia a sesiones de team-meetings")
+TablaSesionesTM
+gtsave(TablaSesionesEF, "Adherence/TablaSesionesTM.html")
 
 
