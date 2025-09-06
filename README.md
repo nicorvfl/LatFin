@@ -51,13 +51,14 @@ Construir la adherencia es un desafío dado que el constructo podría ser medido
 - De forma rudimentaria, vamos a decir que el total de sesiones posibles de un participante son 400. ¿Por qué rudimentario? Simplemente porque no estamos considerando la posibilidad de dropout.
 - Entonces, vamos a calcular un total de reuniones (literalmente: la suma de la asistencia) y un porcentaje de asistencia (calculado como la suma total dividido la cantidad posible de reuniones multiplicado por 100).
 
-¿Cómo medir la adherencia a las **reuniones grupales**?  
+¿Cómo medir la adherencia a las **reuniones grupales**?   
 Primero: ¿cómo se estructura esta variable?  
-Tenemos 4 iniciales de ejercicio físico.  
-Tenemos otras 4 de nutrición.  
-Otras 4 de estimulación cognitiva.  
-Finalmente otras 4 más de coaching de salud.  
-Y luego tenemos dos reuniones más en el mes 5 y a partir de acá tenemos una por mes.  
+- Tenemos 4 iniciales de ejercicio físico.  
+- Tenemos otras 4 de nutrición.  
+- Otras 4 de estimulación cognitiva.  
+- Finalmente otras 4 más de coaching de salud.  
+- Y luego tenemos dos reuniones más en el mes 5 y a partir de acá tenemos una por mes.  
+
 Entonces, en el primer año tenemos: 4 + 4 + 4 + 4 + 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1.  
 En el segundo año tenemos 12 más.  
 En total, son unas: 38 sesiones posibles.  
