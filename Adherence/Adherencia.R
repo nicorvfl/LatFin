@@ -24,7 +24,8 @@ PorcentajeMedioEF <- Adherencia %>%
   group_by(record_id)%>%
   mutate(
     BrutoSEF = sum(ef_count, na.rm = TRUE), #sesiones en crudo
-    PorcentajeSEF = (BrutoSEF / 400) * 100) #porcentaje de sesiones
+    PorcentajeSEF = (BrutoSEF / 400) * 100)%>%
+  filter(Eventos == "base")#porcentaje de sesiones
     
 #Media por centro
 MediaEF <- PorcentajeMedioEF %>%
@@ -45,7 +46,7 @@ TablaSesionesEF
 gtsave(TablaSesionesEF, "Adherence/MediaEF.html")
 #-------------------------------------------------------------------------------
 
-SesionesEF <- ggplot(PorcentajeMedioEF, aes(x = center,
+SesionesEFis <- ggplot(PorcentajeMedioEF, aes(x = center,
                               y = PorcentajeSEF))+
   geom_point(size = 3, alpha = 0.4, color = "dodgerblue4")+
   stat_summary(fun = mean, geom = "point",
@@ -57,23 +58,47 @@ SesionesEF <- ggplot(PorcentajeMedioEF, aes(x = center,
   theme_light()
 
 ggsave("Adherence/PorcentajeSesionesFis.png",
-       plot = SesionesEF, width = 12, height = 6, dpi = 300, bg = "white")
+       plot = SesionesEFis, width = 12, height = 6, dpi = 300, bg = "white")
 
 #-------------------------------------------------------------------------------
-#Estimulación cognitiva
+#Reuniones grupales
 #-------------------------------------------------------------------------------
 
+# Número de variables de reuniones que sumás
+vars_reunion <- c(
+  "ef_grupal1","ef_grupal2","ef_grupal3","ef_grupal4",
+  "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
+  "nis_grupal1","nis_grupal2","nis_grupal3","nis_grupal4",
+  "mgr_1grupal1","mgr_2grupal1","mgr_3grupal1",
+  "mgr_4grupal1","mgr_5grupal1","mgr_5grupal2","mgr_6grupal1",
+  "mgr_7grupal1","mgr_6grupal2","mgr_8grupal1","mgr_9grupal1",
+  "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1")
 
+ReunionGrupal <- Adherencia %>%
+  filter(Eventos == "base")%>%
+  mutate(
+    SumaReu = rowSums(across(all_of(vars_reunion)), na.rm = TRUE),
+    MaxReu  = length(vars_reunion),  
+    PorcentajeReu = (SumaReu / MaxReu) * 100)
 
+#-------------------------------------------------------------------------------
+ggplot(ReunionGrupal, aes(x = center, y = PorcentajeReu))+
+  geom_point(size = 3, alpha = 0.4, color = "dodgerblue4")+
+  stat_summary(fun = mean, geom = "point",
+               size = 3, color = "#B23AEE")+
+  stat_summary(fun = mean, geom = "line", color = "#B23AEE",
+               linetype = "dashed")+
+  labs(x = "Center", y = "% adherence to team-groups sessions",
+       title = "% Team Groups sessions by center")+
+  theme_light()
+#-------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
+#Media por centro
+MediaReu <- ReunionGrupal %>%
+  group_by(center)%>%
+  summarise(
+    MediaReuniones = mean(PorcentajeReu, na.rm = TRUE))
+MediaReu
 
 
 
