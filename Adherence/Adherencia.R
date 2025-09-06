@@ -43,7 +43,7 @@ TablaSesionesEF <- MediaEF %>%
   tab_header(
     title = "% Adherencia a sessiones de ejercicio físico por centro")
 TablaSesionesEF
-gtsave(TablaSesionesEF, "Adherence/MediaEF.html")
+gtsave(TablaSesionesEF, "Adherence/Tabla de Ejercicio físico.html")
 #-------------------------------------------------------------------------------
 
 SesionesEFis <- ggplot(PorcentajeMedioEF, aes(x = center,
@@ -57,7 +57,7 @@ SesionesEFis <- ggplot(PorcentajeMedioEF, aes(x = center,
        title = "% Physical Exercise by center")+
   theme_light()
 
-ggsave("Adherence/PorcentajeSesionesFis.png",
+ggsave("Adherence/Porcentaje de Sesiones de Ejercicio Físico.png",
        plot = SesionesEFis, width = 12, height = 6, dpi = 300, bg = "white")
 
 #-------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ TMsession <- ggplot(ReunionGrupal, aes(x = center, y = PorcentajeReu))+
        title = "% Team Groups sessions by center")+
   theme_light()
 TMsession
-ggsave("Adherence/TMsession.png",
+ggsave("Adherence/Porcentaje de Sesiones de Team-Meetings.png",
        plot = TMsession, width = 12, height = 6, dpi = 300, bg = "white")
 #-------------------------------------------------------------------------------
 
@@ -111,7 +111,7 @@ TablaSesionesTM <- MediaReu %>%
   tab_header(
     title = "% Adherencia a sesiones de team-meetings")
 TablaSesionesTM
-gtsave(TablaSesionesEF, "Adherence/TablaSesionesTM.html")
+gtsave(TablaSesionesEF, "Adherence/Tabla de Team-Meetings.html")
 
 #-------------------------------------------------------------------------------
 #Estimulación cognitiva
@@ -130,6 +130,14 @@ MediaEC <- PorcentajeMedioEC %>%
     mediaEF = mean(PorcentajeEC))
 MediaEC
 
+TablaSesionesEC <- MediaEC %>%
+  gt() %>%
+  fmt_number(columns = mediaEF, decimals = 2) %>%
+  tab_header(
+    title = "% Adherencia a sesiones de estimulación cognitiva")
+TablaSesionesEC
+gtsave(TablaSesionesEC, "Adherence/Tabla de promedio de estimulación cognitiva.html")
+
 #Número bruto de sesiones
 RowCE <- ggplot(df_v4, aes(x = center, y = ec_count,
                   fill = Eventos))+
@@ -138,5 +146,29 @@ RowCE <- ggplot(df_v4, aes(x = center, y = ec_count,
   scale_fill_manual(values = c("base" = "#B23AEE",
                                "12m" = "dodgerblue4"))+
   theme_light()
-ggsave("Adherence/RowCE.png",
+ggsave("Adherence/Sesiones crudas de estimulación cognitiva.png",
        plot = RowCE, width = 12, height = 6, dpi = 300, bg = "white")
+
+#Porcentaje de sesiones
+PorcentajeCE <- ggplot(PorcentajeMedioEC, aes(x = center, y = PorcentajeEC))+
+  geom_point(size = 3, alpha = 0.4, color = "dodgerblue4")+
+  stat_summary(fun = mean, geom = "point",
+               size = 3, color = "#B23AEE")+
+  stat_summary(fun = mean, geom = "line", color = "#B23AEE",
+               linetype = "dashed")+
+  labs(x = "Center", y = "% adherence to cognitive stimulation sessions",
+       title = "% cognitive stimulation sessions by center")+
+  theme_light()
+PorcentajeCE
+ggsave("Adherence/Porcentaje de Sesiones de Estimulación Cognitiva.png",
+       plot = PorcentajeCE, width = 12, height = 6, dpi = 300, bg = "white")
+
+#Tabla
+library(gt)
+TablaSesionesEC <- PorcentajeMedioEC %>%
+  gt() %>%
+  fmt_number(columns = MediaEC, decimals = 2) %>%
+  tab_header(
+    title = "% Adherencia a sesiones de estimulación cognitiva")
+TablaSesionesEC
+gtsave(TablaSesionesEC, "Adherence/Tabla de sesiones de estimulación cognitiva.html")
