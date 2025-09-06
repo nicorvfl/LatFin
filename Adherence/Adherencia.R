@@ -1,11 +1,16 @@
-dir.create(file.path(getwd(), "Adherence"), showWarnings = FALSE)
-
 #-------------------------------------------------------------------------------
 #La adherencia la deberíamos tener en los 4 puntos de la intervención, a saber:
 #ejercicio físico (medido como cantidad de veces que van al gimnasio),
 #estimulación cognitiva (medido como la cantidad de niveles de BrainHQ semanales)
 #Dieta medido como el mind score + contactos telefónicos
 #monitoreo de salud como asistencia a las reuniones grupales
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+#Materia prima
+Adherencia <- df_v4 %>%
+  filter(Randomization == "Yes",
+         Arm == "Systematic")
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
@@ -19,17 +24,18 @@ dir.create(file.path(getwd(), "Adherence"), showWarnings = FALSE)
 #Entonces tengo 48 semanas en el primer año
 #y 52 en el segundo
 
-df_v4 <- df_v4 %>%
+
+EjercicioFisico <- Adherencia %>%
   group_by(record_id)%>%
   mutate(
     EjercicioGYM = sum(ef_count, na.rm = TRUE), #suma total
     PorcentajeGYM = (EjercicioGYM / 400) * 100) #porcentaje
 
 #Crudo por centro
-GraficoFisico <- df_v4 %>%
+GraficoFisico <- Adherencia %>%
   filter(Eventos %in% c("base","12m"))
 
-GraficoFis <- ggplot(GraficoFisico, aes(y = PorcentajeGYM,
+ggplot(GraficoFisico, aes(y = PorcentajeGYM,
                   x = center))+
   geom_point(size = 3, alpha = 0.4,
              color = "dodgerblue4")+
@@ -41,18 +47,42 @@ ggsave("Adherence/GraficoFis.svg",
        bg = "white")
 
 #Cantidad de sesiones totales por centro
-ggplot(df_v5, aes(x = center,
-                  y = ADH_ActFis))+
+FisRow <- ggplot(GraficoFisico, aes(x = center,
+                  y = ef_count,
+                  fill = Eventos))+
   geom_boxplot()+
+  labs(y = "Amount of Physical Exercise sessions")+
   theme_light()
 
-#Porcentaje por centro
-ggplot(df_v5, aes(x = center,
-                  y = PorcentajeActFis))+
-  geom_point(size = 3, alpha = 0.1, 
-             col = "#8968CD")+
-  geom_boxplot(alpha = 0)+
+ggsave("Adherence/GraficoFisRow.svg",
+       plot = FisRow, width = 12, height = 6, dpi = 300,
+       bg = "white")
+
+#Quisiera hacer una cosa más comparativa
+library(ggplot2)
+library(dplyr)
+
+# Crudo por centro
+MediaCentro <- GraficoFisico %>%
+  group_by(center) %>%
+  summarise(PorcentajeMedio = mean(ef_count, na.rm = TRUE) / 400 * 100)
+MediaCentro
+
+ggplot(EjercicioFisico, aes(x = center, y = PorcentajeGYM)) +
+  geom_point(size = 3, alpha = 0.4, color = "dodgerblue4") +
+  stat_summary(fun = mean, geom = "point", 
+               shape = 18, size = 4, color = "red") +  # puntos de la media
+  stat_summary(fun = mean, geom = "line", 
+               aes(group = 1), color = "red", linetype = "dashed") + # línea conectando medias
+  labs(title = "% Physical Exercise by center",
+       y = "% adherence to physical exercise program") +
   theme_light()
+
+ggsave("Adherence/GraficoFisicoMedia1.svg",
+       plot = GraficoFisicoMedia1, width = 12, height = 6, dpi = 300, bg = "white")
+
+
+
 
 #-------------------------------------------------------------------------------
 #Actividad cognitiva
