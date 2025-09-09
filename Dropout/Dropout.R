@@ -21,9 +21,56 @@ df_v4 <- df_v4 %>%
 DropGraf <- df_v4 %>%
   filter(Dropout == "Dropout")
 
+#Vamos a analizar los dropouts por centro
 library(ggplot2)
-ggplot(DropGraf, aes(x = center, fill = DropoutFase))+
+DropByCenter <- ggplot(DropGraf, aes(x = center, fill = DropoutFase))+
   geom_bar(stat = "count", position = "dodge")+
   theme_light()+
   labs(title = "Dropouts by center")
+
+ggsave("Dropout/Dropouts por centro.png",
+       plot = DropByCenter, width = 15, height = 6, dpi = 300, bg = "white")
+
+Tabla <- DropGraf %>%
+  group_by(center) %>%
+  summarise(
+    DropoutsCantidad = sum(!is.na(dropout_phase), na.rm = TRUE),
+    .groups = "drop"
+  )
+Tabla
+
+library(gt)
+TablaDrop <- Tabla %>%
+  gt() %>%
+  fmt_number(columns = DropoutsCantidad, decimals = 0) %>%
+  tab_header(
+    title = "Cantidad de Dropouts por centro")
+TablaDrop
+gtsave(TablaDrop, "Dropout/Tabla de cantidad de dropouts por centro.html")
+
+#Ahora por rama de intervención
+
+DropoutByArm <- ggplot(DropGraf, aes(x = center, fill = Arm)) +
+  geom_bar(position = "dodge") +
+  theme_light() +
+  labs(title = "Dropouts by arm and center", 
+       x = "Center", y = "Dropouts", fill = "Arm")
+ggsave("Dropout/Dropouts por Intervencion.png",
+       plot = DropoutByArm, width = 15, height = 6, dpi = 300, bg = "white")
+
+
+#Un mini testeo
+dfChi <- df_v4 %>%
+  filter(Eventos == "24m")
+tabla <- table(dfChi$Arm, dfChi$Dropout)
+print(tabla)
+chi_res <- chisq.test(tabla)
+chi_res
+chi_res$expected
+
+#log
+# Aseguramos que Dropout sea binaria 0/1
+df_v4$Dropout_bin <- ifelse(df_v4$Dropout == "Dropout", 1, 0)
+modelodrop <- glm(Dropout_bin ~ Arm, data = df_v4, family = binomial)
+summary(modelodrop)
 
