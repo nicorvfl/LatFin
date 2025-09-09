@@ -122,13 +122,27 @@ La adherencia se calcula para **Ejercicio físico**, **Reuniones grupales**, **E
     Porcentaje = (sesiones realizadas / 644) * 100
 
   ---
+  
+## Dropout
 
-  ## Dropout
+El formulario de dropout se encuentra alojado en el mes 24. Contiene, en especial, 4 campos principales:
+- Fecha de salida.
+- Fase del estudio.
+- Motivo de abandono.
+- Visita de evaluación que se pierde por abandonar.
 
-  El formulario de dropout se encuentra alojado en el mes 24. Contiene, en especial, 4 cajas/boxes:
-  - Fecha de salida.
-  - Fase del estudio.
-  - Motivo de abandono.
-  - Visita de evaluación que se pierde por dropautear.
+**Definición de dropout:** se considera dropout la presencia de algún valor en cualquiera de estos campos: fecha de salida, fase del estudio o motivo de abandono.
 
-  *¿Cómo vamos a definir dropout?* En principio, como la presencia de algún valor en fecha de salida / fase del estudio / motivo de abandono.
+---
+
+Nos interesa saber si existen diferencias en la cantidad de dropouts por rama de intervención (`Arm`).  
+Primero, vamos fuerte al medio con un **test Chi-cuadrado de independencia** para evaluar si `Arm` y `Dropout` están asociadas.  
+Y vemos que:  
+`X² = 0.25257, gl = 1, p = 0.6146`  
+
+---
+
+Vamos un poco más y nos preguntamos si existe efecto de `Arm` sobre la probabilidad de dropout:
+- Grupo de referencia: **Flexible** (`probabilidad de dropout ≈ 3%`).
+- **OR** para *Systematic* = `0.93` `(IC95%: 0.72–1.21, p = 0.601)`.  
+  O sea que, bajo esta lógica, el grupo sistemático tiene odds de dropout 7% menores que el flexible.
