@@ -11,6 +11,7 @@ Incluye scripts, tablas y figuras organizadas para su análisis y seguimiento.
 2. [Flowchart](#flowchart)
 3. [Tabla 1](#tabla-1)
 4. [Adherencia](#adherencia)
+5. [Dropout](#Dropout)
 
 ---
 
@@ -121,3 +122,13 @@ La adherencia se calcula para **Ejercicio físico**, **Reuniones grupales**, **E
     Porcentaje = (sesiones realizadas / 644) * 100
 
   ---
+
+  ## Dropout
+
+  El formulario de dropout se encuentra alojado en el mes 24. Contiene, en especial, 4 cajas/boxes:
+  - Fecha de salida.
+  - Fase del estudio.
+  - Motivo de abandono.
+  - Visita de evaluación que se pierde por dropautear.
+
+  *¿Cómo vamos a definir dropout?* En principio, como la presencia de algún valor en fecha de salida / fase del estudio / motivo de abandono.
