@@ -143,6 +143,6 @@ Y vemos que:
 ---
 
 Vamos un poco más y nos preguntamos si existe efecto de `Arm` sobre la probabilidad de dropout:
-- Grupo de referencia: **Flexible** (probabilidad de dropout ≈ 3%).
-- **OR** para *Systematic* = `0.93` (IC95%: 0.72–1.21, p = 0.601).  
+- Grupo de referencia: **Flexible** (`probabilidad de dropout ≈ 3%`).
+- **OR** para *Systematic* = `0.93` `(IC95%: 0.72–1.21, p = 0.601)`.  
   O sea que, bajo esta lógica, el grupo sistemático tiene odds de dropout 7% menores que el flexible.
