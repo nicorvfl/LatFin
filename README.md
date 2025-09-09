@@ -134,5 +134,6 @@ La adherencia se calcula para **Ejercicio físico**, **Reuniones grupales**, **E
   *¿Cómo vamos a definir dropout?* En principio, como la presencia de algún valor en fecha de salida / fase del estudio / motivo de abandono.
 
   Nos va a interesar, por otro lado, si existen diferencias en la cantidad de dropouts por rama de intervención.
-  <pre> $$ \ln\left(\frac{p}{1-p}\right) = \beta_0 + \beta_1 \cdot \mathbf{1}_{\{\text{Arm = "Systematic"}\}} $$ </pre>
+![Logistic formula](https://latex.codecogs.com/png.image?\dpi{150}\bg{white}
+\logit(p)=\ln\left(\frac{p}{1-p}\right)=\beta_0+\beta_1\cdot\text{Arm})
   
