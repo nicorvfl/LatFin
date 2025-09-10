@@ -70,7 +70,10 @@ df_tab1 <- df_base_rdz %>%
     cst_c = as.numeric(cstc),
     flu_sem = as.numeric(animaltotcorrect_vc),
     flu_fon_p = as.numeric(p_total_score),
-    flu_fon_m = as.numeric(m_total_score)
+    flu_fon_m = as.numeric(m_total_score),
+    Job = as.factor(Job),
+    Retirement = as.factor(Retirement),
+    EducationLevel = as.factor(EducationLevel)
   )
 
 labels(df_tab1$Arm)               <- "Group"
@@ -78,6 +81,9 @@ labels(df_tab1$Age)               <- "Age (years)"
 labels(df_tab1$Sex)               <- "Sex"
 labels(df_tab1$Ethnicity)         <- "Race/Ethnicity"
 labels(df_tab1$Education)         <- "Years of Education"
+labels(df_tab1$EducationLevel)    <- "Educational Level"
+labels(df_tab1$Job)               <- "Job type"
+labels(df_tab1$Retirement)        <- "Retirement status"
 labels(df_tab1$MaritalStatus)     <- "Marital Status"
 labels(df_tab1$Area)              <- "Living Area"
 labels(df_tab1$TipoHogar)         <- "House Type"
@@ -140,7 +146,8 @@ ctrl <- tableby.control(
 )
 
 tab_A <- tableby(
-  Arm ~ Age + Sex + Ethnicity + Education + MaritalStatus +
+  Arm ~ Age + Sex + Ethnicity + Education + EducationLevel +
+    MaritalStatus + Job + Retirement +
     Area + TipoHogar + EscolaridadPadre + EscolaridadMadre +
     History_Smoking + Alcohol_Consumption + ipaq,
   data = df_tab1, control = ctrl

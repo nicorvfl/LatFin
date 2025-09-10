@@ -73,17 +73,16 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "hmi_4capacitacion1", "hmi_4capacitacion2", "hmi_4capacitacion3",
              "hmi_4capacitacion4")
 
-
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
                          paste(Eventos, collapse = "|"), ")$")
 PatronNombres <- paste0("^(.*)_(", paste(Eventos, collapse = "|"), ")$")
 
 df_v1 <- df_bruto %>%
-  select(record_id, male_pre, race_pre, date_start_pre,country_pre,age_pre,
+  select(record_id, male_pre, retirement_pre,race_pre, date_start_pre,country_pre,age_pre,
          marital_status_pre,living_alone_pre,education_pre,education_years_base,
          tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
          heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
-         glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,
+         glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,job_pre,
          matches(PatronColumnas))%>%
   mutate(across(matches(PatronColumnas),        
       ~ readr::parse_number(as.character(.x))
@@ -91,7 +90,7 @@ df_v1 <- df_bruto %>%
   pivot_longer(
     cols = -c(record_id, male_pre, date_start_pre,country_pre,age_pre,
               marital_status_pre,living_alone_pre,education_pre,education_years_base,
-              tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
+              tobacco_pre, retirement_pre, job_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
               heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
               glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz),
     names_to = c("Cuerpos","Eventos"),
@@ -99,6 +98,7 @@ df_v1 <- df_bruto %>%
     values_to = "valor")%>%
   pivot_wider(
     id_cols = c(record_id, male_pre, date_start_pre,country_pre,age_pre,
+                job_pre, retirement_pre,
                 marital_status_pre,living_alone_pre,education_pre,education_years_base,
                 tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
                 heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
@@ -395,9 +395,27 @@ df_v4 <- df_v4 %>%
       EvaluacionCompleta == TRUE, 1,0))
 
 #-------------------------------------------------------------------------------
-#Escalamos las tareas cognitivas
+#Área laboral y modifico de nuevo educación
 #-------------------------------------------------------------------------------
 
-
-
-
+df_v4 <- df_v4 %>%
+  mutate(
+    EducationLevel = case_when(
+      education_years < 7 ~ "Incomplete Primary",
+      education_years < 9 ~ "Complete Primary",
+      education_years < 13 ~ "Complete Secondary",
+      education_years > 12 ~ "University or higher"
+    ),
+    Job = case_when(
+        job_pre == 1 ~ "Clerical/Office",
+        job_pre == 2 ~ "Equipment/Vehicle Operator",
+        job_pre == 3 ~ "Farmer",
+        job_pre == 4 ~ "Laborer",
+        job_pre == 5 ~ "Manager/Owner",
+        job_pre == 6 ~ "Military",
+        job_pre == 7 ~ "Professional/Technical",
+        job_pre == 8 ~ "Sales",
+        job_pre == 9 ~ "Service",
+        job_pre == 10 ~ "Craftsman/Repair"
+      ),
+    Retirement = if_else(retirement_pre == 1, "Yes", "No"))
