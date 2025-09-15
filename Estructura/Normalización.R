@@ -71,7 +71,8 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "nis_grupal1","nis_grupal2","nis_grupal3","nis_grupal4",
              "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
              "hmi_4capacitacion1", "hmi_4capacitacion2", "hmi_4capacitacion3",
-             "hmi_4capacitacion4")
+             "hmi_4capacitacion4", "ef_date", "gf_date")
+
 
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
                          paste(Eventos, collapse = "|"), ")$")
@@ -360,7 +361,10 @@ df_v4 <- df_v4 %>%
 #Tengo también personas que no están randomizadas pero tienen un "Yes"
 #-------------------------------------------------------------------------------
 
-id_erroneos_2 <- c("316-3","320-24","320-39","324-60","324-73")
+id_erroneos_2 <- c("316-3","320-24","320-39","324-60","324-73",
+                   "315-1","315-2","315-3","315-9","315-10","315-11",
+                   "315-13","315-15","315-16","315-17","315-18","315-19",
+                   "315-21","315-37","315-48")
 df_v4 <- df_v4 %>%
   mutate(
     Randomization = if_else(record_id %in% id_erroneos_2,
@@ -419,3 +423,4 @@ df_v4 <- df_v4 %>%
         job_pre == 10 ~ "Craftsman/Repair"
       ),
     Retirement = if_else(retirement_pre == 1, "Yes", "No"))
+

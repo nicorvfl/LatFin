@@ -57,5 +57,22 @@ res_1follow <- df_flags %>%
   ) %>%
   arrange(Arm)
 
-res_1follow
+
+#¿Cuántos han iniciado la intervención?
+
+Intervention <- df_v4 %>%
+  filter(Eventos == "base",
+         Randomization == "Yes") %>%
+  group_by(center)%>%
+  mutate(
+    Started = if_else(!is.na(ef_date) | !is.na(gf_date), 1, 0)
+  ) %>%
+  filter(Started == 1)%>%
+  summarise(
+    FinallyStarted = n()
+  )
+
+Intervention #1065
+
+
 
