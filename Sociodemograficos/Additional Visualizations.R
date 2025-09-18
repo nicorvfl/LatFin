@@ -38,3 +38,26 @@ ggsave("Sociodemograficos/DistEduc.svg",
        plot = Education,
        width = 11, height = 6, units = "in",
        bg = "white")
+
+
+#Randomizacion
+dfBase <- df_v4 %>%
+  filter(Eventos == "base")
+RDZ <- ggplot(dfBase, aes(x = center, fill = Randomization))+
+  geom_bar(position = "dodge")+
+  scale_fill_manual(values = c("#1F77B4", "#D62728")) +
+  labs(x = "Centro")+
+  theme_light()
+
+ggsave("Participants Selection/RDZ.svg",
+       plot = RDZ,
+       width = 11, height = 6, units = "in",
+       bg = "white")
+
+ggplot(dfBase, aes(x = center, y = education_years,
+                   color = Sex))+
+  geom_point(size = 3, alpha = 0.8,
+             position = position_jitter(width=0.2,
+                                        height = 0.2))+
+  theme_light()+
+  labs(x = "Centro", y = "Años de escolaridad")

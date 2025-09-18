@@ -381,6 +381,9 @@ df_v4 <- df_v4 %>%
 #-------------------------------------------------------------------------------
 
 
+CantidadEvaluaciones(df_v4)
+
+
 TestNps = c(
   "imm_recalltotal","score_wais_bruto","score_wais_escalar",
   "forwardtotcorrect","backwardtotcorrect","sequencetotcorrect",
@@ -395,12 +398,17 @@ TestNps = c(
   "tiempo_parte_c","tiempo1","tiempo2","totale_rdl","totale_rdc",
   "totales_tardia","animaltotcorrect_vc","p_total_score","m_total_score")
 
+# cuántas columnas de TestNps existen realmente en df_v4
+eval_present <- intersect(TestNps, names(df_v4))
+n_present_cols <- length(eval_present)
+
 df_v4 <- df_v4 %>%
   mutate(
-    EvaluacionCompleta = rowSums(across(all_of(TestNps), ~ !is.na(.))) >= 3)%>%
-  mutate(
-    EvaluacionCompleta = if_else(
-      EvaluacionCompleta == TRUE, 1,0))
+    n_no_na = rowSums(across(all_of(eval_present), ~ !is.na(.))),  # conteo por fila
+    EvaluacionCompleta3 = if_else(n_no_na >= 3, 1, 0),            # tu criterio >=3
+    EvaluacionCompleta50 = if_else(n_no_na >= ceiling(0.5 * n_present_cols), 1, 0) # criterio 50%
+    )
+
 
 #-------------------------------------------------------------------------------
 #Área laboral y modifico de nuevo educación
@@ -428,3 +436,11 @@ df_v4 <- df_v4 %>%
       ),
     Retirement = if_else(retirement_pre == 1, "Yes", "No"))
 
+
+
+
+ids_diferentes <- df_v4 %>%
+  filter(EvaluacionCompleta3 != EvaluacionCompleta50) %>%
+  select(record_id, Eventos, n_no_na, EvaluacionCompleta3, EvaluacionCompleta50)
+
+ids_diferentes

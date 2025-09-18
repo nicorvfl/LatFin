@@ -28,7 +28,6 @@ ConvertirSegundosTMT <- function(x) {
 #-------------------------------------------------------------------------------
 
 #-----------------------CALCULAR Nº DE EVALUACIONES-----------------------------
-
 CantidadEvaluaciones <- function(data,
                                  id = record_id,
                                  event = Eventos,
@@ -45,20 +44,31 @@ CantidadEvaluaciones <- function(data,
                                    "totalfreerecall","totalfreerecall_2","tiempo_parte_a","tiempo_parte_b",
                                    "tiempo_parte_c","tiempo1","tiempo2","totale_rdl","totale_rdc",
                                    "totales_tardia","animaltotcorrect_vc","p_total_score","m_total_score"
-                                 )) {
-  
+                                 ),
+                                 min_prop = 0.5) {
+  # columnas realmente presentes en el data
   eval_present <- intersect(eval_cols, names(data))
+  n_present_cols <- length(eval_present)
   
   data %>%
     ungroup() %>%
-    mutate(tiene_eval = if (length(eval_present) == 0) FALSE
-           else rowSums(across(all_of(eval_present), ~ !is.na(.))) > 2) %>%
+    mutate(
+      # si no hay columnas, nunca cuenta evaluación
+      tiene_eval = if (n_present_cols == 0) {
+        FALSE
+      } else {
+        req <- ceiling(min_prop * n_present_cols)   # mínimo requerido
+        n_no_na <- rowSums(across(all_of(eval_present), ~ !is.na(.)))
+        n_no_na >= req
+      }
+    ) %>%
     group_by({{ event }}, {{ id }}) %>%
     summarise(tiene_eval = any(tiene_eval), .groups = "drop_last") %>%
     summarise(
       CantEvaluaciones = sum(tiene_eval),
-      TotalSujetos = n(),         
-      .groups = "drop")
+      TotalSujetos     = n(),
+      .groups = "drop"
+    )
 }
 
 
