@@ -177,8 +177,6 @@ ggplot(dfDrop, aes(x = Arm, fill = factor(IniciaIntervencion))) +
   theme(plot.title = element_text(hjust = 0.5))+
   theme_bw()
 
-library(dplyr)
-library(ggplot2)
 
 dfDrop_sum <- dfDrop %>%
   group_by(center, Arm) %>%
@@ -210,17 +208,13 @@ Cuentita <- df_v4 %>%
     EvaluacionCompleta = as.integer(EvaluacionCompleta50)
   ) %>%
   filter(!is.na(Arm), Randomization == "Yes") %>%
-  group_by(Eventos, center) %>%
+  group_by(Eventos, Arm) %>%
   summarise(
     n_completas    = sum(EvaluacionCompleta50 == 1, na.rm = TRUE),
     n_randomizados = n(),  
     .groups = "drop"
   ) %>%
-  arrange(Eventos) %>%
-  filter(Eventos == "base")
-
-View(Cuentita)
-
+  arrange(Eventos, Arm)
 
 #Cuántas evaluaciones hay (eligiendo criterio 50%)
 Cuentita <- Cuentita %>%
@@ -228,9 +222,7 @@ Cuentita <- Cuentita %>%
     Eventos = factor(Eventos, 
                      levels = c("scr","pre","base","6m",
                                 "12m","18m","24m")))
-
 View(Cuentita)
-
 ggplot(Cuentita, aes(x = Eventos, y = n_completas,
                      fill = Arm))+
   geom_col(position = "dodge")+
