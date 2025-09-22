@@ -461,6 +461,22 @@ ids_peru <- c("320-18","320-6")
 df_v4 <- df_v4 %>%
   mutate(
     IniciaIntervencion = if_else(record_id %in% ids_peru,
-                                 1L, IniciaIntervencion),
-    OverrideManual = record_id %in% ids_peru)
+                                 1L, IniciaIntervencion))
+
+#-------------------------------------------------------------------------------
+#                              ¿ES DROPOUT?
+#-------------------------------------------------------------------------------
+
+df <- df_v4 %>%
+  mutate(
+    EsDropout = if_else(Randomization == "Yes" & !is.na(dropout_phase) & !is.na(DropoutReason),
+                        "Dropout", "No-Dropout"))
+
+
+
+
+
+
+
+
 
