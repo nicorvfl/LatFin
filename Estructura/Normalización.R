@@ -71,7 +71,7 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "nis_grupal1","nis_grupal2","nis_grupal3","nis_grupal4",
              "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
              "hmi_4capacitacion1", "hmi_4capacitacion2", "hmi_4capacitacion3",
-             "hmi_4capacitacion4", "ef_date", "gf_date")
+             "hmi_4capacitacion4", "ef_date", "gf_date", "dropout_reason3")
 
 
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
@@ -177,7 +177,34 @@ df_v4 <- df_v4 %>%
   mutate(
     Randomization = if_else(is.na(Randomization),
                             "No", Randomization))
+#-------------------------------------------------------------------------------
+#Asimismo debería de excluir los ID mal randomizados de Costa Rica
+#-------------------------------------------------------------------------------
 
+id_erroneos <- c("315-1", "315-2", "315-3", "315-9", "315-10", 
+                 "315-11", "315-13", "315-15", "315-16", "315-17", 
+                 "315-18", "315-19", "315-21", "315-37", "315-48", 
+                 "312-167", "318-41", "316-102", "321-154", 
+                 "321-156", "321-157", "321-163", "321-159")
+
+df_v4 <- df_v4 %>%
+  filter(!record_id %in% id_erroneos)
+
+#-------------------------------------------------------------------------------
+#Tengo también personas que no están randomizadas pero tienen un "Yes"
+#-------------------------------------------------------------------------------
+
+id_erroneos_2 <- c("316-3","320-24","320-39","324-60","324-73",
+                   "315-1","315-2","315-3","315-9","315-10","315-11",
+                   "315-13","315-15","315-16","315-17","315-18","315-19",
+                   "315-21","315-37","315-48", "314-76",
+                   "314-101", "314-105", "314-124", "314-148",
+                   "314-154")
+df_v4 <- df_v4 %>%
+  mutate(
+    Randomization = if_else(record_id %in% id_erroneos_2,
+                            "No",
+                            Randomization))
 #-------------------------------------------------------------------------------
 #Etnicidad
 #-------------------------------------------------------------------------------
@@ -264,7 +291,6 @@ fumadores <- df_v4 %>%
   summarise(
     Cantidad_Fumadores = sum(tobacco_pre == 1, na.rm = TRUE)
   )
-fumadores
 
 #Recodifico el nombre
 df_v4 <- df_v4 %>%
@@ -350,41 +376,8 @@ df_v4 <- df_v4 %>%
   )
 
 #-------------------------------------------------------------------------------
-#Asimismo debería de excluir los ID mal randomizados de Costa Rica
-#-------------------------------------------------------------------------------
-
-id_erroneos <- c("315-1", "315-2", "315-3", "315-9", "315-10", 
-                 "315-11", "315-13", "315-15", "315-16", "315-17", 
-                 "315-18", "315-19", "315-21", "315-37", "315-48", 
-                 "312-167", "318-41", "316-102", "321-154", 
-                 "321-156", "321-157", "321-163", "321-159")
-df_v4 <- df_v4 %>%
-  filter(!record_id %in% id_erroneos)
-
-#-------------------------------------------------------------------------------
-#Tengo también personas que no están randomizadas pero tienen un "Yes"
-#-------------------------------------------------------------------------------
-
-id_erroneos_2 <- c("316-3","320-24","320-39","324-60","324-73",
-                   "315-1","315-2","315-3","315-9","315-10","315-11",
-                   "315-13","315-15","315-16","315-17","315-18","315-19",
-                   "315-21","315-37","315-48", "314-76",
-                   "314-101", "314-105", "314-124", "314-148",
-                   "314-154")
-df_v4 <- df_v4 %>%
-  mutate(
-    Randomization = if_else(record_id %in% id_erroneos_2,
-                            "No",
-                            Randomization)
-  )
-
-#-------------------------------------------------------------------------------
 #Quiero crear una columna que me diga si el sujeto tiene o no la ev. completa
 #-------------------------------------------------------------------------------
-
-
-CantidadEvaluaciones(df_v4)
-
 
 TestNps = c(
   "imm_recalltotal","score_wais_bruto","score_wais_escalar",
@@ -406,11 +399,10 @@ n_present_cols <- length(eval_present)
 
 df_v4 <- df_v4 %>%
   mutate(
-    n_no_na = rowSums(across(all_of(eval_present), ~ !is.na(.))),  # conteo por fila
-    EvaluacionCompleta3 = if_else(n_no_na >= 3, 1, 0),            # tu criterio >=3
-    EvaluacionCompleta50 = if_else(n_no_na >= ceiling(0.5 * n_present_cols), 1, 0) # criterio 50%
-    )
-
+    n_no_na = rowSums(across(all_of(eval_present), ~ !is.na(.))), 
+    EvaluacionCompleta3 = if_else(n_no_na >= 3, 1, 0),            
+    EvaluacionCompleta50 = if_else(n_no_na >= ceiling(0.5 * n_present_cols), 1,
+                                   0))
 
 #-------------------------------------------------------------------------------
 #Área laboral y modifico de nuevo educación
@@ -438,10 +430,37 @@ df_v4 <- df_v4 %>%
       ),
     Retirement = if_else(retirement_pre == 1, "Yes", "No"))
 
-ids_diferentes <- df_v4 %>%
-  filter(EvaluacionCompleta3 != EvaluacionCompleta50) %>%
-  select(record_id, Eventos, n_no_na, EvaluacionCompleta3, EvaluacionCompleta50)
+#-------------------------------------------------------------------------------
+#Recodificamos dropout
+#-------------------------------------------------------------------------------
 
-ids_diferentes
+df_v4 <- df_v4 %>%
+  mutate(
+    DropoutReason = case_when(
+      dropout_reason == 0 ~ "Death",
+      dropout_reason == 1 ~ "Adverse event",
+      dropout_reason == 2 ~ "Eligibility criteria error",
+      dropout_reason == 3 ~ "Participant withdrew",
+      TRUE ~ NA_character_  
+    )
+  )
 
+#-------------------------------------------------------------------------------
+#Empezó la intervención
+#-------------------------------------------------------------------------------
+
+df_v4 <- df_v4 %>%
+  group_by(record_id) %>%
+  mutate(
+    IniciaIntervencion = as.integer(any(!is.na(ef_date) | !is.na(gf_date)))
+  ) %>%
+  ungroup()
+
+
+ids_peru <- c("320-18","320-6")
+df_v4 <- df_v4 %>%
+  mutate(
+    IniciaIntervencion = if_else(record_id %in% ids_peru,
+                                 1L, IniciaIntervencion),
+    OverrideManual = record_id %in% ids_peru)
 

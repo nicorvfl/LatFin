@@ -117,3 +117,9 @@ EscalarCognicion <- function(df,
     }, .names = "{.col}{suffix}")) %>%
     ungroup()
 }
+
+
+
+
+
+
