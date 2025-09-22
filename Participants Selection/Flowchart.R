@@ -241,5 +241,6 @@ ggplot(Cuentita, aes(x = Eventos, y = n_completas,
   scale_fill_manual(values = c("Flexible" = "#EEB422",
                                "Systematic" = "#008B00"))+
   theme_bw()+
-  labs(title = "Número de evaluaciones por evento")                     
+  labs(title = "Número de evaluaciones por evento")   
+
 
