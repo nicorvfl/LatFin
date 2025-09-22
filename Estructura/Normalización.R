@@ -78,7 +78,7 @@ PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
                          paste(Eventos, collapse = "|"), ")$")
 PatronNombres <- paste0("^(.*)_(", paste(Eventos, collapse = "|"), ")$")
 
-df_v1 <- df_bruto %>%
+df_v1 <- df_bruto %>% 
   select(record_id, male_pre, retirement_pre,race_pre, date_start_pre,country_pre,age_pre,
          marital_status_pre,living_alone_pre,education_pre,education_years_base,
          tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
@@ -88,7 +88,7 @@ df_v1 <- df_bruto %>%
   mutate(across(matches(PatronColumnas),        
       ~ readr::parse_number(as.character(.x))
     ))%>%
-  pivot_longer(
+  pivot_longer( 
     cols = -c(record_id, male_pre, date_start_pre,country_pre,age_pre,
               marital_status_pre,living_alone_pre,education_pre,education_years_base,
               tobacco_pre, retirement_pre, job_pre, dislipidemia_caide_pre, myocardial_infarction_pre,

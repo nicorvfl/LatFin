@@ -13,6 +13,15 @@ nrow(df_v4_filas)
 RDZ <- df_v4 %>%
   filter(Eventos == "base")
 
+#¿Cuántos randomizados hay?
+num_rdz <- df_v4 %>%
+  filter(Eventos == "base") %>%
+  group_by(Arm) %>%
+  summarise(suma = sum(Randomization == "Yes", na.rm = TRUE))
+num_rdz
+#1105 randomizados
+#546 flexibles y 559 sistemáticos
+
 ggplot(RDZ, aes(x = center, fill = Randomization)) +
   geom_bar(position = "dodge") +
   labs(
@@ -201,15 +210,19 @@ Cuentita <- df_v4 %>%
     EvaluacionCompleta = as.integer(EvaluacionCompleta50)
   ) %>%
   filter(!is.na(Arm), Randomization == "Yes") %>%
-  group_by(Eventos, Arm) %>%
+  group_by(Eventos, center) %>%
   summarise(
     n_completas    = sum(EvaluacionCompleta50 == 1, na.rm = TRUE),
     n_randomizados = n(),  
     .groups = "drop"
   ) %>%
-  arrange(Eventos, Arm)
+  arrange(Eventos) %>%
+  filter(Eventos == "base")
+
 View(Cuentita)
 
+
+#Cuántas evaluaciones hay (eligiendo criterio 50%)
 Cuentita <- Cuentita %>%
   mutate(
     Eventos = factor(Eventos, 
@@ -229,3 +242,4 @@ ggplot(Cuentita, aes(x = Eventos, y = n_completas,
                                "Systematic" = "#008B00"))+
   theme_bw()+
   labs(title = "Número de evaluaciones por evento")                     
+
