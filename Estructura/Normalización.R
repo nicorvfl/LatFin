@@ -86,8 +86,8 @@ df_v1 <- df_bruto %>%
          glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,job_pre,
          matches(PatronColumnas))%>%
   mutate(across(matches(PatronColumnas),        
-      ~ readr::parse_number(as.character(.x))
-    ))%>%
+                ~ readr::parse_number(as.character(.x))
+  ))%>%
   pivot_longer( 
     cols = -c(record_id, male_pre, date_start_pre,country_pre,age_pre,
               marital_status_pre,living_alone_pre,education_pre,education_years_base,
@@ -130,8 +130,8 @@ df_v2 <- df_v1 %>%
 df_v3 <- df_v2 %>%
   mutate(
     Arm = factor(rdz_rdz,
-                   levels = c("0","1"),
-                   labels = c("Flexible","Systematic")),
+                 levels = c("0","1"),
+                 labels = c("Flexible","Systematic")),
     Randomization = factor(rdz_yn_scr,
                            levels = c("0", "1"),
                            labels = c("No", "Yes")))%>%
@@ -246,8 +246,8 @@ df_v4 <- df_v4 %>%
         fra_score <= 12, "Low",
         if_else(fra_score < 16, "Medium", "High")),
       if_else(
-      fra_score <= 19, "Low",
-      if_else(fra_score < 23, "Medium", "High"))),
+        fra_score <= 19, "Low",
+        if_else(fra_score < 23, "Medium", "High"))),
     Fra_Clase = factor(Fra_Clase) |> fct_relevel("Low", "Medium", "High"))
 
 #-------------------------------------------------------------------------------
@@ -417,17 +417,17 @@ df_v4 <- df_v4 %>%
       education_years > 12 ~ "University or higher"
     ),
     Job = case_when(
-        job_pre == 1 ~ "Clerical/Office",
-        job_pre == 2 ~ "Equipment/Vehicle Operator",
-        job_pre == 3 ~ "Farmer",
-        job_pre == 4 ~ "Laborer",
-        job_pre == 5 ~ "Manager/Owner",
-        job_pre == 6 ~ "Military",
-        job_pre == 7 ~ "Professional/Technical",
-        job_pre == 8 ~ "Sales",
-        job_pre == 9 ~ "Service",
-        job_pre == 10 ~ "Craftsman/Repair"
-      ),
+      job_pre == 1 ~ "Clerical/Office",
+      job_pre == 2 ~ "Equipment/Vehicle Operator",
+      job_pre == 3 ~ "Farmer",
+      job_pre == 4 ~ "Laborer",
+      job_pre == 5 ~ "Manager/Owner",
+      job_pre == 6 ~ "Military",
+      job_pre == 7 ~ "Professional/Technical",
+      job_pre == 8 ~ "Sales",
+      job_pre == 9 ~ "Service",
+      job_pre == 10 ~ "Craftsman/Repair"
+    ),
     Retirement = if_else(retirement_pre == 1, "Yes", "No"))
 
 #-------------------------------------------------------------------------------
@@ -467,16 +467,43 @@ df_v4 <- df_v4 %>%
 #                              ¿ES DROPOUT?
 #-------------------------------------------------------------------------------
 
-df <- df_v4 %>%
+df <- df %>%
+  group_by(record_id) %>%
   mutate(
-    EsDropout = if_else(Randomization == "Yes" & !is.na(dropout_phase) & !is.na(DropoutReason),
-                        "Dropout", "No-Dropout"))
+    EsDropout = if_else(any(EsDropout == "Dropout"), "Dropout", "No-Dropout")
+  ) %>%
+  ungroup()
 
+#-------------------------------------------------------------------------------
+#                        MIND SCORE 
+#-------------------------------------------------------------------------------
 
+df <- df %>%
+  mutate(
+    mind1 = if_else(pointerfood1 < 2, 0, if_else(pointerfood1 == 3, 0.5, 1)),#check
+    mind2 = if_else(pointerfood2 < 4, 1, if_else(pointerfood2 == 4, 0.5, 0)),#check
+    mind3 = if_else(pointerfood3 < 4, 0, if_else(pointerfood3 < 6, 0.5, 1)),#check
+    mind4 = if_else(pointerfood4 < 5, 1, if_else(pointerfood4 == 5, 0.5, 0)),#check
+    mind5 = if_else(pointerfood5 < 5, 0, if_else(pointerfood5 == 5, 0.5, 1)),#check
+    mind6 = if_else(pointerfood6 < 3, 0, if_else(pointerfood6 == 3, 0.5, 1)),#check
+    mind7 = if_else(pointerfood7 == 1, 0, if_else(pointerfood7 == 2, 0.5, 1)),#check
+    mind8 = if_else(pointerfood8 < 3, 0, if_else(pointerfood8 == 3, 0.5, 1)),#check
+    mind9 = if_else(pointerfood9 == 6, 0, if_else(pointerfood9 < 3, 1, 0.5)),#check
+    mind10 = if_else(pointerfood10 < 3, 0, if_else(pointerfood10 < 5, 0.5, 1)),#check
+    mind11 = if_else(pointerfood11 == 6, 0.5, 0),#check
+    mind12 = if_else(pointerfood12 < 5, 1, if_else(pointerfood12 == 5, 0.5, 0)),#check
+    mind13 = if_else(pointerfood13 > 4, 1, if_else(pointerfood13 == 1, 0, 0.5)),#check
+    mind14 = if_else(pointerfood14 > 3, 0, if_else(pointerfood14 == 3, 0.5, 1)),#check
+    MIND = rowSums(across(starts_with("mind")), na.rm = TRUE))
 
+#-------------------------------------------------------------------------------
+#                              PROMEDIAMOS PRESIÓN
+#-------------------------------------------------------------------------------
 
-
-
+df <- df %>%
+  mutate(
+    Diastolic = (bp_diastolic1 + bp_diastolic2) / 2,
+    Systolic = (bp_systolic1 + bp_systolic2) / 2)
 
 
 
