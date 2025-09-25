@@ -2,19 +2,33 @@
 #                       ¿CUÁNTAS FILAS TIENE LA BASE?                            
 #-------------------------------------------------------------------------------
 
-df_v4_filas <- df_v4 %>%
+df_v4_filas <- df %>%
   filter(Eventos == "base")
 nrow(df_v4_filas)
+
+
+#-------------------------------------------------------------------------------
+#                   ¿QUÉ PASA CON LOS NO RANDOMIZADOS?
+#-------------------------------------------------------------------------------
+
+#Quién tiene un "No" en randomizado.
+dfRDZ <- df %>%
+  filter(Randomization == "No", 
+         Eventos == "scr")%>%
+  select(record_id, center, Randomization,
+         reason_not_rdz, reason_rdz)
+
+View(dfRDZ)
 
 #-------------------------------------------------------------------------------
 #                   ¿CUÁNTOS RANDOMIZADOS HAY?
 #-------------------------------------------------------------------------------
 
-RDZ <- df_v4 %>%
+RDZ <- df %>%
   filter(Eventos == "base")
 
 #¿Cuántos randomizados hay?
-num_rdz <- df_v4 %>%
+num_rdz <- df %>%
   filter(Eventos == "base") %>%
   group_by(Arm) %>%
   summarise(suma = sum(Randomization == "Yes", na.rm = TRUE))
@@ -47,7 +61,7 @@ ggplot(RDZ, aes(x = center, fill = Randomization)) +
 #                   ¿CUÁNTOS SISTEMÁTICOS Y FLEXIBLES HAY?
 #-------------------------------------------------------------------------------
 
-GROUPS <- df_v4 %>%
+GROUPS <- df %>%
   filter(Eventos == "base" & Randomization == "Yes")
 
 ggplot(GROUPS, aes(x = center, fill = Arm)) +
@@ -77,7 +91,7 @@ theme_replace()
 #-------------------------------------------------------------------------------
 
 
-Iniciaron <- df_v4 %>%
+Iniciaron <- df %>%
   filter(Eventos == "base", IniciaIntervencion == 1)
 
 ggplot(Iniciaron, aes(x = center, fill = Arm)) +
@@ -98,7 +112,7 @@ ggplot(Iniciaron, aes(x = center, fill = Arm)) +
   theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14))
 
 
-CuantosIniciaron <- df_v4 %>%
+CuantosIniciaron <- df %>%
   group_by(Arm)%>%
   filter(Eventos == "base",
          Randomization == "Yes")%>%
@@ -111,14 +125,14 @@ CuantosIniciaron
 #            ¿QUIÉNES SE FUERON ANTES DE INICIAR LA INTERVENCIÓN?
 #-------------------------------------------------------------------------------
 
-Flex_Started <- df_v4 %>%
+Flex_Started <- df %>%
   filter(Randomization == "Yes",
          Arm == "Flexible",
          Eventos == "base",
          IniciaIntervencion == 1) %>%
   distinct(record_id, center, Arm)
 
-Dropout24m_form_Flex <- df_v4 %>%
+Dropout24m_form_Flex <- df %>%
   filter(Eventos == "24m",
          Arm == "Flexible",
          record_id %in% Flex_Started$record_id) %>%
@@ -151,7 +165,7 @@ Flex_con_form <- FlexStarted_con_form %>%
 View(Flex_con_form)
 
 
-dfDrop <- df_v4 %>%
+dfDrop <- df %>%
   filter(Eventos == "24m",
          Randomization == "Yes")%>%
   mutate(
@@ -202,7 +216,7 @@ ggplot(dfDrop_sum, aes(x = center, y = EsDrop, fill = Arm)) +
 #-------------------------------------------------------------------------------
 
 #Cantidad de evaluaciones
-Cuentita <- df_v4 %>%
+Cuentita <- df %>%
   mutate(
     Eventos = trimws(tolower(as.character(Eventos))),
     EvaluacionCompleta = as.integer(EvaluacionCompleta50)
@@ -214,7 +228,7 @@ Cuentita <- df_v4 %>%
     n_randomizados = n(),  
     .groups = "drop"
   ) %>%
-  arrange(Eventos, Arm)
+  arrange(Eventos)
 
 #Cuántas evaluaciones hay (eligiendo criterio 50%)
 Cuentita <- Cuentita %>%
@@ -223,6 +237,7 @@ Cuentita <- Cuentita %>%
                      levels = c("scr","pre","base","6m",
                                 "12m","18m","24m")))
 View(Cuentita)
+
 ggplot(Cuentita, aes(x = Eventos, y = n_completas,
                      fill = Arm))+
   geom_col(position = "dodge")+
@@ -234,5 +249,7 @@ ggplot(Cuentita, aes(x = Eventos, y = n_completas,
                                "Systematic" = "#008B00"))+
   theme_bw()+
   labs(title = "Número de evaluaciones por evento")   
+
+
 
 

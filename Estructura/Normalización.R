@@ -71,7 +71,8 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "nis_grupal1","nis_grupal2","nis_grupal3","nis_grupal4",
              "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
              "hmi_4capacitacion1", "hmi_4capacitacion2", "hmi_4capacitacion3",
-             "hmi_4capacitacion4", "ef_date", "gf_date", "dropout_reason3")
+             "hmi_4capacitacion4", "ef_date", "gf_date", "dropout_reason3",
+             "reason_not_rdz", "reason_rdz")
 
 
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
@@ -177,18 +178,6 @@ df_v4 <- df_v4 %>%
   mutate(
     Randomization = if_else(is.na(Randomization),
                             "No", Randomization))
-#-------------------------------------------------------------------------------
-#Asimismo debería de excluir los ID mal randomizados de Costa Rica
-#-------------------------------------------------------------------------------
-
-id_erroneos <- c("315-1", "315-2", "315-3", "315-9", "315-10", 
-                 "315-11", "315-13", "315-15", "315-16", "315-17", 
-                 "315-18", "315-19", "315-21", "315-37", "315-48", 
-                 "312-167", "318-41", "316-102", "321-154", 
-                 "321-156", "321-157", "321-163", "321-159")
-
-df_v4 <- df_v4 %>%
-  filter(!record_id %in% id_erroneos)
 
 #-------------------------------------------------------------------------------
 #Tengo también personas que no están randomizadas pero tienen un "Yes"
@@ -199,7 +188,13 @@ id_erroneos_2 <- c("316-3","320-24","320-39","324-60","324-73",
                    "315-13","315-15","315-16","315-17","315-18","315-19",
                    "315-21","315-37","315-48", "314-76",
                    "314-101", "314-105", "314-124", "314-148",
-                   "314-154")
+                   "314-154",
+                   "315-1", "315-2", "315-3", "315-9", "315-10", 
+                 "315-11", "315-13", "315-15", "315-16", "315-17", 
+                 "315-18", "315-19", "315-21", "315-37", "315-48", 
+                 "312-167", "318-41", "316-102", "321-154", 
+                 "321-156", "321-157", "321-163", "321-159")
+
 df_v4 <- df_v4 %>%
   mutate(
     Randomization = if_else(record_id %in% id_erroneos_2,
@@ -533,5 +528,18 @@ df <- df %>%
                            Tiene18m == TRUE | Tiene24m == TRUE), 1, 0)
   ) %>%
   ungroup()
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
