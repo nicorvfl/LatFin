@@ -157,8 +157,8 @@ df_v4 <- df_v3 %>%
     center = case_when(
       CodigoCentro == "312" ~ "Argentina",
       CodigoCentro == "325" ~ "Bolivia",
-      CodigoCentro == "317" ~ "Brasil_UFMG",
-      CodigoCentro == "316" ~ "Brasil_USP",
+      CodigoCentro == "317" ~ "Brasil",
+      CodigoCentro == "316" ~ "Brasil",
       CodigoCentro == "315" ~ "Chile",
       CodigoCentro == "314" ~ "Colombia",
       CodigoCentro == "321" ~ "Costa Rica",
@@ -467,10 +467,10 @@ df_v4 <- df_v4 %>%
 #                              ¿ES DROPOUT?
 #-------------------------------------------------------------------------------
 
-df <- df %>%
+df <- df_v4 %>%
   group_by(record_id) %>%
   mutate(
-    EsDropout = if_else(any(EsDropout == "Dropout"), "Dropout", "No-Dropout")
+    EsDropout = if_else(any(!is.na(dropout_reason)), "Dropout", "No-Dropout")
   ) %>%
   ungroup()
 
@@ -505,5 +505,33 @@ df <- df %>%
     Diastolic = (bp_diastolic1 + bp_diastolic2) / 2,
     Systolic = (bp_systolic1 + bp_systolic2) / 2)
 
+
+#-------------------------------------------------------------------------------
+#                         MISSING AT RANDOM
+#-------------------------------------------------------------------------------
+
+#Tienen todas las evaluaciones
+df <- df %>%
+  group_by(record_id) %>%
+  mutate(
+    cuenta = sum(EvaluacionCompleta50 == 1, na.rm = TRUE),
+    AsistenciaPerfecta = if_else(cuenta == 5, 1, 0)
+  ) %>%
+  ungroup()
+
+df <- df %>%
+  group_by(record_id) %>%
+  mutate(
+    TieneBase  = any(EvaluacionCompleta50 == 1 & Eventos == "base", na.rm = TRUE),
+    Tiene6m  = any(EvaluacionCompleta50 == 1 & Eventos == "6m", na.rm = TRUE),
+    Tiene12m  = any(EvaluacionCompleta50 == 1 & Eventos == "12m", na.rm = TRUE),
+    Tiene18m  = any(EvaluacionCompleta50 == 1 & Eventos == "18m", na.rm = TRUE),
+    Tiene24m   = any(EvaluacionCompleta50 == 1 & Eventos == "24m", na.rm = TRUE),
+    AsistenciaInicioFin = if_else(TieneBase & Tiene24m, 1, 0),
+    BaseMasUno = if_else(TieneBase == TRUE & 
+                           (Tiene6m == TRUE | Tiene12m == TRUE |
+                           Tiene18m == TRUE | Tiene24m == TRUE), 1, 0)
+  ) %>%
+  ungroup()
 
 
