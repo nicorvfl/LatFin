@@ -72,7 +72,8 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
              "hmi_4capacitacion1", "hmi_4capacitacion2", "hmi_4capacitacion3",
              "hmi_4capacitacion4", "ef_date", "gf_date", "dropout_reason3",
-             "reason_not_rdz", "reason_rdz")
+             "reason_not_rdz", "reason_rdz",
+             "mother_problem", "father_problem")
 
 
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
@@ -530,8 +531,25 @@ df <- df %>%
   ungroup()
 
 
+#-------------------------------------------------------------------------------
+#                         ANTECEDENTES FAMILIARES
+#-------------------------------------------------------------------------------
 
-
+df <- df %>%
+  mutate(
+    father_problems = case_when(
+      father_problem == 5 ~ "Psiquiátrico",
+      father_problem %in% c(1, 2, 3, 4) ~ "Neurológico",
+      father_problem == 8 ~ "Sin problemas",
+      father_problem == 9 ~ "Desconocido",
+      TRUE ~ NA_character_),
+    mother_problems = case_when(
+      mother_problem == 5 ~ "Psiquiátrico",
+      mother_problem %in% c(1, 2, 3, 4) ~ "Neurológico",
+      mother_problem == 8 ~ "Sin problemas",
+      mother_problem == 9 ~ "Desconocido",
+      TRUE ~ NA_character_)
+  )
 
 
 
