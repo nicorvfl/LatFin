@@ -72,7 +72,6 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
              "hmi_4capacitacion1", "hmi_4capacitacion2", "hmi_4capacitacion3",
              "hmi_4capacitacion4", "ef_date", "gf_date", "dropout_reason3",
-             "reason_not_rdz", "reason_rdz",
              "mother_problem", "father_problem")
 
 
@@ -86,33 +85,54 @@ df_v1 <- df_bruto %>%
          tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
          heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
          glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,job_pre,
-         matches(PatronColumnas))%>%
+         reason_not_rdz_scr, reason_rdz_scr,
+         # Exclusión SCR
+         crit_ex1_scr,  crit_ex2_scr,  crit_ex3_scr,  crit_ex4_scr,  crit_ex5_scr,  crit_ex6_scr, 
+         crit_ex7_scr,  crit_ex8_scr,  crit_ex9_scr,  crit_ex10_scr, crit_ex11_scr, crit_ex12_scr,
+         crit_ex13_scr, crit_ex14_scr, crit_ex15_scr, crit_ex16_scr, crit_ex17_scr, crit_ex18_scr,
+         crit_ex19_scr, crit_ex20_scr, crit_ex21_scr, crit_ex22_scr, crit_ex23_scr,
+         # Inclusión SCR
+         crit_in1_scr, crit_in2_scr, crit_in3_scr, crit_in4_scr, crit_in5_scr, crit_in6_scr,
+         # Exclusión PRE
+         crit_ex1_pre,  crit_ex2_pre,  crit_ex3_pre,  crit_ex4_pre,  crit_ex5_pre,  crit_ex6_pre, 
+         crit_ex7_pre,  crit_ex8_pre,  crit_ex9_pre,  crit_ex10_pre, crit_ex11_pre, crit_ex12_pre,
+         crit_ex13_pre, crit_ex14_pre, crit_ex15_pre, crit_ex16_pre, crit_ex17_pre, crit_ex18_pre,
+         crit_ex19_pre, crit_ex20_pre, crit_ex21_pre, crit_ex22_pre, crit_ex23_pre,
+         # Inclusión PRE
+         crit_in1_pre, crit_in2_pre, crit_in3_pre, crit_in4_pre, crit_in5_pre, crit_in6_pre,
+         matches(PatronColumnas)) %>%
   mutate(across(matches(PatronColumnas),        
                 ~ readr::parse_number(as.character(.x))
-  ))%>%
+  )) %>%
   pivot_longer( 
     cols = -c(record_id, male_pre, date_start_pre,country_pre,age_pre,
               marital_status_pre,living_alone_pre,education_pre,education_years_base,
               tobacco_pre, retirement_pre, job_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
               heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
-              glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz),
+              glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,reason_not_rdz_scr, reason_rdz_scr,
+              crit_ex1_scr:crit_ex23_scr, crit_in1_scr:crit_in6_scr,
+              crit_ex1_pre:crit_ex23_pre, crit_in1_pre:crit_in6_pre),
     names_to = c("Cuerpos","Eventos"),
     names_pattern = PatronNombres,
-    values_to = "valor")%>%
+    values_to = "valor") %>%
   pivot_wider(
     id_cols = c(record_id, male_pre, date_start_pre,country_pre,age_pre,
                 job_pre, retirement_pre,
                 marital_status_pre,living_alone_pre,education_pre,education_years_base,
                 tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
                 heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
+                reason_not_rdz_scr, reason_rdz_scr,
+                crit_ex1_scr:crit_ex23_scr, crit_in1_scr:crit_in6_scr,
+                crit_ex1_pre:crit_ex23_pre, crit_in1_pre:crit_in6_pre,
                 glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,Eventos),
     names_from = Cuerpos,
     values_from = valor) %>%
-  arrange(record_id, Eventos)%>%
+  arrange(record_id, Eventos) %>%
   mutate(
     Eventos = factor(Eventos,
                      levels = c("pre","scr","base","6m","12m","18m","24m"))
   )
+
 
 #-------------------------------------------------------------------------------
 #Hay algunas cosas previas por arreglar.
@@ -551,13 +571,185 @@ df <- df %>%
       TRUE ~ NA_character_)
   )
 
+#-------------------------------------------------------------------------------
+#                        CRITERIOS DE ELEGIBILIDAD
+#-------------------------------------------------------------------------------
+
+#Me voy a armar un dataframe con estos 614.
+Renegados <- df %>%
+  filter(Randomization == "No", Eventos == "pre")%>%
+  select(record_id, center, crit_ex1_scr, crit_ex2_scr, crit_ex3_scr,
+         crit_ex4_scr,crit_ex5_scr,crit_ex6_scr,crit_ex7_scr,crit_ex8_scr,
+         crit_ex9_scr,crit_ex10_scr,crit_ex11_scr,crit_ex12_scr,crit_ex13_scr,
+         crit_ex14_scr,crit_ex15_scr,crit_ex16_scr,crit_ex17_scr,crit_ex18_scr,
+         crit_ex19_scr,crit_ex20_scr,crit_ex21_scr,crit_ex22_scr,crit_ex23_scr,
+         crit_in1_scr, crit_in2_scr, crit_in5_scr,
+         crit_in3_scr, crit_in4_scr,crit_ex5_scr,
+         crit_in6_scr, reason_rdz_scr, reason_not_rdz_scr,
+         crit_in1_pre:crit_in6_pre, crit_ex1_pre:crit_ex23_pre,
+         age_pre, total_caide, education_years)
+
+#¿Quién se va por su propia cuenta?
+Abandonadores <- Renegados %>%
+  filter(reason_not_rdz_scr == 1)%>%
+  summarise(Cantidad = n())
+Abandonadores
+
+#¿A quién echamos?
+Echados <- Renegados %>%
+  filter(reason_not_rdz_scr != 1)
+
+#                                 INCLUSIÓN
+#-------------------------------------------------------------------------------
+#1 incluido
+#0 no incluido
+
+#EDAD
+CheckEdad <- Echados %>%
+  mutate(
+    Edad = if_else((crit_in2_pre == 0 | crit_in2_scr == 0), 1, 0)
+  )%>%
+  filter(Edad == 1)%>%
+  select(record_id, Edad, age_pre)
+CheckEdad #13
+
+#CAIDE
+CheckCAIDE <- Echados %>%
+  mutate(
+    CAIDE = if_else(
+      coalesce(crit_in1_pre, crit_in1_scr) == 0, 
+      1,
+      0 
+    )
+  ) %>%
+  filter(CAIDE == 1 & total_caide <= 6) %>%
+  select(record_id, CAIDE, total_caide)
+View(CheckCAIDE)
+
+#MMSE/CERAD
+CheckCogni <- Echados %>%
+  mutate(
+    Cogni = if_else(
+      pmax(crit_in3_pre, crit_in5_pre, crit_in6_pre,
+           crit_in3_scr, crit_in5_scr, crit_in6_scr,
+           na.rm = TRUE) == 0,
+      1,0)) %>%
+  filter(Cogni == 1) %>%
+  select(record_id, center, crit_in3_pre, crit_in5_pre, crit_in6_pre,
+         crit_in3_scr, crit_in5_scr, crit_in6_scr, Cogni)
+View(CheckCogni)
+
+#EDUCACION O ANALFABETISMO 
+CheckAnalf <- Echados %>%
+  mutate(
+    Analf = if_else(
+      coalesce(crit_in4_pre, crit_in4_scr) == 0, 
+      1, 
+      0  
+    )
+  ) %>%
+  filter(Analf == 1 & education_years < 2) %>%
+  select(record_id, Analf, education_years)
+
+CheckAnalf2 <- Echados %>%
+  mutate(
+    Analf1 = if_else(
+      coalesce(crit_ex19_pre, crit_ex19_scr) == 1, 
+      1, 
+      0  
+    )
+  ) %>%
+  filter(Analf1 == 1 & education_years < 2) %>%
+  select(record_id, Analf1, education_years)
+
+View(CheckAnalf2)
+View(CheckAnalf)
+
+#                                 EXCLUSIÓN
+#-------------------------------------------------------------------------------
+
+#Grupo 1: CONDICIONES NEUROLÓGICAS
+cols_grupo1 <- c(
+  paste0(c("crit_ex1","crit_ex3","crit_ex23","crit_ex18"), "_pre"),
+  paste0(c("crit_ex1","crit_ex3","crit_ex23","crit_ex18"), "_scr"))
+
+cols_grupo2 <- c(
+  paste0(c("crit_ex7","crit_ex5","crit_ex6","crit_ex8","crit_ex17"), "_pre"),
+  paste0(c("crit_ex7","crit_ex5","crit_ex6","crit_ex8","crit_ex17"), "_scr"))
+
+cols_grupo3 <- c(
+  paste0(c("crit_ex4","crit_ex20","crit_ex22"), "_pre"),
+  paste0(c("crit_ex4","crit_ex20","crit_ex22"), "_scr"))
+
+cols_grupo4 <- c(
+  paste0(c("crit_ex13","crit_ex14"), "_pre"),
+  paste0(c("crit_ex13","crit_ex14"), "_scr"))
+
+cols_grupo5 <- c(
+  paste0(c("crit_ex2","crit_ex10","crit_ex11","crit_ex12","crit_ex16"), "_pre"),
+  paste0(c("crit_ex2","crit_ex10","crit_ex11","crit_ex12","crit_ex16"), "_scr"))
+
+cols_grupo6 <- c(
+  paste0(c("crit_ex9","crit_ex15"), "_pre"),
+  paste0(c("crit_ex9","crit_ex15"), "_scr"))
+
+cols_grupo7 <- c(
+  paste0(c("crit_ex21"), "_pre"),
+  paste0(c("crit_ex21"), "_scr")
+)
+
+Exclusiones <- Echados %>%
+  mutate(
+    Grupo1 = rowSums(
+      across(all_of(cols_grupo1), ~ .x == 1),
+      na.rm = TRUE
+    ) > 0,
+    Grupo2 = rowSums(
+      across(all_of(cols_grupo2), ~ .x == 1), na.rm = TRUE
+    ) > 0,
+    Grupo3 = rowSums(
+      across(all_of(cols_grupo3), ~ .x == 1), na.rm = TRUE) > 0,
+    Grupo4 = rowSums(
+      across(all_of(cols_grupo4), ~ .x == 1), na.rm = TRUE) > 0,
+    Grupo5 = rowSums(
+      across(all_of(cols_grupo5), ~ .x == 1), na.rm = TRUE) > 0,
+    Grupo6 = rowSums(
+      across(all_of(cols_grupo6), ~ .x == 1), na.rm = TRUE) > 0,
+    Grupo7 = rowSums(
+      across(all_of(cols_grupo7), ~ .x == 1), na.rm = TRUE) >0
+    )
 
 
+TotalGrupo <- sum(Exclusiones$Grupo7, na.rm = TRUE)
+TotalGrupo
+
+#                           SIN NINGUNA INFORMACIÓN
+#-------------------------------------------------------------------------------
+
+# Vector con todas las columnas de criterios (ajustá si usás _pre/_scr)
+criterios_cols <- c(
+  paste0("crit_in", 1:6, "_pre"),
+  paste0("crit_in", 1:6, "_scr"),
+  paste0("crit_ex", 1:23, "_pre"),
+  paste0("crit_ex", 1:23, "_scr")
+)
+
+SinInformacion <- Echados %>%
+  mutate(
+    SoloNA = if_else(
+      rowSums(!is.na(across(all_of(criterios_cols)))) == 0, 
+      TRUE, FALSE
+    )
+  ) %>%
+  filter(SoloNA) %>%
+  select(record_id, center, all_of(criterios_cols),
+         reason_rdz_scr, reason_not_rdz_scr)
+
+View(SinInformacion)
 
 
-
-
-
-
+InfoEchados <- Echados %>%
+  filter(is.na(reason_not_rdz_scr))
+View(InfoEchados)
 
 

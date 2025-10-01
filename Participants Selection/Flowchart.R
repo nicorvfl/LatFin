@@ -6,19 +6,34 @@ df_v4_filas <- df %>%
   filter(Eventos == "base")
 nrow(df_v4_filas)
 
-
 #-------------------------------------------------------------------------------
 #                   ¿QUÉ PASA CON LOS NO RANDOMIZADOS?
 #-------------------------------------------------------------------------------
 
-#Quién tiene un "No" en randomizado.
+#Cuántos "NO" tenemos
+dfRDZ1 <- df %>%
+  filter(Eventos == "base", Randomization == "No")%>%
+  summarise(
+    cantidad = n()
+  )
+dfRDZ1
+
+#Por qué no se randomizó.
 dfRDZ <- df %>%
   filter(Randomization == "No", 
          Eventos == "scr")%>%
   select(record_id, center, Randomization,
-         reason_not_rdz, reason_rdz)
+         RDZReason, reason_rdz_scr)
 
 View(dfRDZ)
+
+
+#Quiénes tienen el dato incompleto
+dfNAcount <- df %>%
+  filter(Randomization == "No", Eventos == "scr") %>%
+  group_by(center)%>%
+  summarise(CantidadNA = sum(is.na(RDZReason)))
+dfNAcount
 
 #-------------------------------------------------------------------------------
 #                   ¿CUÁNTOS RANDOMIZADOS HAY?
