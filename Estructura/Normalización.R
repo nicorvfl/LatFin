@@ -486,9 +486,14 @@ df_v4 <- df_v4 %>%
 df <- df_v4 %>%
   group_by(record_id) %>%
   mutate(
-    EsDropout = if_else(any(!is.na(dropout_reason)), "Dropout", "No-Dropout")
+    EsDropout = if_else((any(!is.na(dropout_reason) | !is.na(dropout_phase)) & 
+                              Randomization == "Yes"), 
+                        "Dropout", "No-Dropout")
   ) %>%
   ungroup()
+
+drop <- df%>%filter(Eventos=="base")
+table(drop$EsDropout)
 
 #-------------------------------------------------------------------------------
 #                        MIND SCORE 
@@ -570,4 +575,3 @@ df <- df %>%
       mother_problem == 9 ~ "Desconocido",
       TRUE ~ NA_character_)
   )
-
