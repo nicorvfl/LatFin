@@ -72,7 +72,8 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
              "hmi_4capacitacion1", "hmi_4capacitacion2", "hmi_4capacitacion3",
              "hmi_4capacitacion4", "ef_date", "gf_date", "dropout_reason3",
-             "mother_problem", "father_problem")
+             "mother_problem", "father_problem",
+             "trail_interrupt_test")
 
 
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
@@ -492,8 +493,16 @@ df <- df_v4 %>%
   ) %>%
   ungroup()
 
-drop <- df%>%filter(Eventos=="base")
-table(drop$EsDropout)
+library(dplyr)
+library(tidyr)
+
+df <- df %>%
+  group_by(record_id) %>%
+  arrange(Eventos, .by_group = TRUE) %>%
+  fill(dropout_phase, .direction = "downup") %>%
+  ungroup()
+
+View(df)
 
 #-------------------------------------------------------------------------------
 #                        MIND SCORE 
@@ -575,3 +584,51 @@ df <- df %>%
       mother_problem == 9 ~ "Desconocido",
       TRUE ~ NA_character_)
   )
+
+#-------------------------------------------------------------------------------
+#                       DECISIONES DE LIMPIEZA
+#-------------------------------------------------------------------------------
+
+df <- df %>%
+  mutate(
+    #Si el TMT-A es mayor a 300, lo dejo en 300.
+    tima_trail_a = if_else(tima_trail_a > 300, 300, tima_trail_a),
+    tima_trail_a = if_else(tima_trail_a == 300, NA, tima_trail_a),
+    #Este ID se olvidó los anteojos a los 24m.
+    tima_trail_a = if_else(record_id == "320-45" & 
+                             Eventos == "24m", NA, tima_trail_a),
+    tima_trail_b = if_else(record_id == "320-45" & 
+                             Eventos == "24m", NA, tima_trail_b),
+    #Todos los interrumpidos pasan a ser NA
+    tima_trail_b = if_else(trail_interrupt_test == 1, NA, tima_trail_b),
+    #Si el TMT tiene un 0, va NA.
+    tima_trail_a = if_else(tima_trail_a == 0, NA, tima_trail_a),
+    tima_trail_b = if_else(tima_trail_b == 0,
+                           NA, tima_trail_b),
+    #Si el stroop está en 0, va NA.
+    stroop_p = if_else(stroop_p == 0, NA, stroop_p),
+    stroop_c = if_else(stroop_c == 0, NA, stroop_c),
+    stroop_pc = if_else(stroop_pc == 0, NA, stroop_pc),
+    #Modificación de un valor en particular.
+    p_total_score = if_else(record_id == "318-121" & Eventos == "6m",
+                            18, p_total_score),
+    m_total_score = if_else(record_id == "314-123" & Eventos == "base",
+                            3, m_total_score),
+    stroop_p = if_else(record_id == "320-45" & Eventos == "24m",
+                       NA, stroop_p),
+    stroop_c = if_else(record_id == "320-45" & Eventos == "24m",
+                       NA, stroop_c),
+    stroop_pc = if_else(record_id == "320-45" & Eventos == "24m",
+                        NA, stroop_pc),
+    #CST
+    tiempo_parte_a = if_else(tiempo_parte_a == 0 |
+                               tiempo_parte_a == 300,
+                             NA, tiempo_parte_a),
+    tiempo_parte_b = if_else(tiempo_parte_b == 0 |
+                               tiempo_parte_b == 300,
+                             NA, tiempo_parte_b),
+    tiempo_parte_c = if_else(tiempo_parte_c == 0 |
+                               tiempo_parte_c == 300,
+                             NA, tiempo_parte_c))
+
+
