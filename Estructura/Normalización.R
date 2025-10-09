@@ -4,7 +4,8 @@ library(tidyverse)
 library(lubridate)
 
 #Me traigo la base de datos
-df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/copia_total_data.csv")
+df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-01.csv")
+
 
 #-------------------------------------------------------------------------------
 #----------------------- CAMBIOS SIMPLES ---------------------------------------
@@ -14,6 +15,10 @@ df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/copia_total_d
 
 df_bruto <- df_bruto %>%
   mutate(across(matches("tima"), ConvertirSegundosTMT)) 
+
+df_bruto <- df_bruto %>%
+  mutate(across(matches("tiempo"), ConvertirSegundosTMT)) 
+
 
 #-------------------------------------------------------------------------------
 #También de paso vuelo a PR
@@ -33,114 +38,116 @@ df_bruto <- df_bruto %>%
 # id |  edad  |  evento  |  memoria
 #-------------------------------------------------------------------------------
 
-# 1) Definiciones
-niveles_evento <- c("pre","scr","base","6m","12m","18m","24m")
+Eventos <- c("pre","scr","base","6m","12m","18m","24m")
+Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
+             "forwardtotcorrect","backwardtotcorrect","sequencetotcorrect",
+             "fwdlongspanleng","backlongspanleng","seqlongspanleng",
+             "trail_b_error","trail_a_error","trail_interrupt_test",
+             "tima_trail_a","tima_trail_b","stroop_p","stroop_c","stroop_pc",
+             "stroop_errores","csta","cstb","cstc","shifting_score",
+             "delayed_recalltotal","contlearntot","immcuetotal","total_evoc_1l",
+             "total_evoc_1g","total_evoc_1l1g","total_evoc_2l","total_evoc_2g",
+             "total_evoc_2l2g","total_evoc_3l","total_evoc_3g","total_evoc_3l3g",
+             "totalfreerecall","totalfreerecall_2","tiempo_parte_a",
+             "tiempo_parte_b","tiempo_parte_c","tiempo1","tiempo2","totale_rdl",
+             "totale_rdc","totales_tardia","animaltotcorrect_vc",
+             "p_total_score","m_total_score", "bp_systolic1","bp_systolic2",
+             "bp_diastolic1","bp_diastolic2","hr1","hr2","height","weight","bmi",
+             "waist","glucose","hba1c","total_cholesterol","triglycerides","hdl",
+             "ldl","hemoglobin","hematocrit","creatinine","urea","vhs","insulinemia",
+             "mmarg_date","mmarg_puntaje_total","mmbr_puntaje_total",
+             "mmch_puntaje_total","cerad1_escore","cerad2_escore","cerad3_escore",
+             "cerad_total_score","ipaq_score","ipaq_classification","total_caide",
+             "score_diferido","date_memory", "gds_total_score", "cdr_sb",
+             "score_final_score","iadl_score_total","apoe_genotype","apoe4",
+             "aeyn","aeterm","aeclassif","nis_count","nis_count_telefonica","ec_count",
+             "dropout_phase","dropout_reason", "fra_score", "mmse_total",
+             "ifa18", "ifa19", "ifa20", "ifa21", "education_mother","mgr_count",
+             "education_father", "live_area", "house_type", "ef_count",
+             "mgr_1grupal1","mgr_2grupal1","mgr_3grupal1","mgr_4grupal1",
+             "mgr_4grupal1", "mgr_5grupal1","mgr_5grupal2","mgr_6grupal1",
+             "mgr_6grupal2","mgr_7grupal1","mgr_8grupal1","mgr_9grupal1",
+             "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1",
+             "pointerfood1", "pointerfood2", "pointerfood3", "pointerfood4", 
+             "pointerfood5","pointerfood6", "pointerfood7", "pointerfood8",
+             "pointerfood9", "pointerfood10", "pointerfood11", 
+             "pointerfood12", "pointerfood13", "pointerfood14", "ifa19",
+             "ef_grupal1","ef_grupal2","ef_grupal3","ef_grupal4",
+             "nis_grupal1","nis_grupal2","nis_grupal3","nis_grupal4",
+             "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
+             "hmi_4capacitacion1", "hmi_4capacitacion2", "hmi_4capacitacion3",
+             "hmi_4capacitacion4", "ef_date", "gf_date", "dropout_reason3",
+             "mother_problem", "father_problem",
+             "trail_interrupt_test","flexible_yn",
+             paste0("ef_week_", rep(1:52, each = 4), "_", 1:4),
+             paste0("nis_week_",rep(1:52)), paste0("ec_niveles_",rep(1:52)),
+             paste0("ec_week_", rep(1:52, each = 4), "_", 1:7),
+             "nis_telefonica1",  "nis_telefonica2",  "nis_telefonica3_1",  
+             "nis_telefonica3_2","nis_telefonica4_1", "nis_telefonica4_2",
+             "nis_telefonica5_1" ,"nis_telefonica5_2",
+             "nis_telefonica6_1", "nis_telefonica6_2", "nis_telefonica7",   
+             "nis_telefonica8","nis_telefonica9" ,  "nis_telefonica10",  
+             "nis_telefonica11","nis_telefonica12","nis_telefonica13"
+)
 
-Cuerpos <- unique(c(
-  "imm_recalltotal","score_wais_bruto","score_wais_escalar",
-  "forwardtotcorrect","backwardtotcorrect","sequencetotcorrect",
-  "fwdlongspanleng","backlongspanleng","seqlongspanleng",
-  "trail_b_error","trail_a_error","trail_interrupt_test",
-  "tima_trail_a","tima_trail_b","stroop_p","stroop_c","stroop_pc",
-  "stroop_errores","csta","cstb","cstc","shifting_score",
-  "delayed_recalltotal","contlearntot","immcuetotal","total_evoc_1l",
-  "total_evoc_1g","total_evoc_1l1g","total_evoc_2l","total_evoc_2g",
-  "total_evoc_2l2g","total_evoc_3l","total_evoc_3g","total_evoc_3l3g",
-  "totalfreerecall","totalfreerecall_2","tiempo_parte_a",
-  "tiempo_parte_b","tiempo_parte_c","tiempo1","tiempo2","totale_rdl",
-  "totale_rdc","totales_tardia","animaltotcorrect_vc",
-  "p_total_score","m_total_score","bp_systolic1","bp_systolic2",
-  "bp_diastolic1","bp_diastolic2","hr1","hr2","height","weight","bmi",
-  "waist","glucose","hba1c","total_cholesterol","triglycerides","hdl",
-  "ldl","hemoglobin","hematocrit","creatinine","urea","vhs","insulinemia",
-  "mmarg_puntaje_total","mmbr_puntaje_total","mmch_puntaje_total",
-  "cerad1_escore","cerad2_escore","cerad3_escore","cerad_total_score",
-  "ipaq_score","ipaq_classification","total_caide","score_diferido",
-  "gds_total_score","cdr_sb","score_final_score","iadl_score_total",
-  "apoe_genotype","apoe4","aeyn","aeterm","aeclassif","nis_count",
-  "nis_count_telefonica","ec_count","dropout_phase","dropout_reason",
-  "fra_score","mmse_total","ifa18","ifa19","ifa20","ifa21",
-  "education_mother","mgr_count","education_father","live_area",
-  "house_type","ef_count","mgr_1grupal1","mgr_2grupal1","mgr_3grupal1",
-  "mgr_4grupal1","mgr_5grupal1","mgr_5grupal2","mgr_6grupal1",
-  "mgr_6grupal2","mgr_7grupal1","mgr_8grupal1","mgr_9grupal1",
-  "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1",
-  "pointerfood1","pointerfood2","pointerfood3","pointerfood4",
-  "pointerfood5","pointerfood6","pointerfood7","pointerfood8",
-  "pointerfood9","pointerfood10","pointerfood11",
-  "pointerfood12","pointerfood13","pointerfood14",
-  "ef_grupal1","ef_grupal2","ef_grupal3","ef_grupal4",
-  "nis_grupal1","nis_grupal2","nis_grupal3","nis_grupal4",
-  "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
-  "hmi_4capacitacion1","hmi_4capacitacion2","hmi_4capacitacion3",
-  "hmi_4capacitacion4","ef_date","gf_date","dropout_reason3",
-  "mother_problem","father_problem","trail_interrupt_test",
-  "date_memory","mmarg_date","ef_date","gf_date","dropout_date"
-))
 
-Cuerpos_fechas <- c("date_memory","mmarg_date","ef_date","gf_date","dropout_date")
-Cuerpos_categ  <- c("ipaq_classification","apoe_genotype","dropout_reason",
-                    "dropout_reason3","live_area","house_type")
+PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
+                         paste(Eventos, collapse = "|"), ")$")
+PatronNombres <- paste0("^(.*)_(", paste(Eventos, collapse = "|"), ")$")
 
-Cuerpos_numericas <- setdiff(Cuerpos, c(Cuerpos_fechas, Cuerpos_categ))
-
-pat_evento <- paste0("^(", paste(Cuerpos, collapse="|"), ")_(",
-                     paste(Eventos, collapse="|"), ")$")
-cols_evento <- grep(pat_evento, names(df_bruto), value = TRUE)
-
-pat_num    <- paste0("^(", paste(Cuerpos_numericas, collapse="|"), ")_")
-pat_fecha  <- paste0("^(", paste(Cuerpos_fechas,    collapse="|"), ")_")
-cols_num   <- cols_evento[grepl(pat_num,   cols_evento)]
-cols_fecha <- cols_evento[grepl(pat_fecha, cols_evento)]
-
-df_v1 <- df_bruto %>%
-  select(
-    record_id, male_pre, retirement_pre, race_pre, date_start_pre, country_pre, age_pre,
-    marital_status_pre, living_alone_pre, education_pre, education_years_base,
-    tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
-    heart_failure_pre, cardiac_surgery_pre, stroke_pre, ait_pre,
-    glicemia_pre, diabetes_pre, rdz_yn_scr, rdz_rdz, job_pre,
-    reason_not_rdz_scr, reason_rdz_scr, date_rdz_rdz,
-    crit_ex1_scr:crit_ex23_scr, crit_in1_scr:crit_in6_scr,
-    crit_ex1_pre:crit_ex23_pre, crit_in1_pre:crit_in6_pre,
-    all_of(cols_evento)  
-  ) %>%
-  mutate(
-    across(all_of(cols_num),   ~ readr::parse_number(as.character(.x))),
-    across(all_of(cols_fecha), ~ suppressWarnings(lubridate::ymd(.x))),
-    date_start_pre = suppressWarnings(lubridate::ymd(date_start_pre)),
-    date_rdz_rdz   = suppressWarnings(lubridate::ymd(date_rdz_rdz))
-  ) %>%
-  pivot_longer(
-    cols = all_of(cols_evento),  
+df_v1 <- df_bruto %>% 
+  select(record_id, male_pre, retirement_pre,race_pre, date_start_pre,country_pre,age_pre,
+         marital_status_pre,living_alone_pre,education_pre,education_years_base,
+         tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
+         heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
+         glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,job_pre,
+         reason_not_rdz_scr, reason_rdz_scr,
+         # Exclusión SCR
+         crit_ex1_scr,  crit_ex2_scr,  crit_ex3_scr,  crit_ex4_scr,  crit_ex5_scr,  crit_ex6_scr, 
+         crit_ex7_scr,  crit_ex8_scr,  crit_ex9_scr,  crit_ex10_scr, crit_ex11_scr, crit_ex12_scr,
+         crit_ex13_scr, crit_ex14_scr, crit_ex15_scr, crit_ex16_scr, crit_ex17_scr, crit_ex18_scr,
+         crit_ex19_scr, crit_ex20_scr, crit_ex21_scr, crit_ex22_scr, crit_ex23_scr,
+         # Inclusión SCR
+         crit_in1_scr, crit_in2_scr, crit_in3_scr, crit_in4_scr, crit_in5_scr, crit_in6_scr,
+         # Exclusión PRE
+         crit_ex1_pre,  crit_ex2_pre,  crit_ex3_pre,  crit_ex4_pre,  crit_ex5_pre,  crit_ex6_pre, 
+         crit_ex7_pre,  crit_ex8_pre,  crit_ex9_pre,  crit_ex10_pre, crit_ex11_pre, crit_ex12_pre,
+         crit_ex13_pre, crit_ex14_pre, crit_ex15_pre, crit_ex16_pre, crit_ex17_pre, crit_ex18_pre,
+         crit_ex19_pre, crit_ex20_pre, crit_ex21_pre, crit_ex22_pre, crit_ex23_pre,
+         # Inclusión PRE
+         crit_in1_pre, crit_in2_pre, crit_in3_pre, crit_in4_pre, crit_in5_pre, crit_in6_pre,
+         matches(PatronColumnas)) %>%
+  mutate(across(matches(PatronColumnas),        
+                ~ readr::parse_number(as.character(.x))
+  )) %>%
+  pivot_longer( 
+    cols = -c(record_id, male_pre, date_start_pre,country_pre,age_pre,
+              marital_status_pre,living_alone_pre,education_pre,education_years_base,
+              tobacco_pre, retirement_pre, job_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
+              heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
+              glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,reason_not_rdz_scr, reason_rdz_scr,
+              crit_ex1_scr:crit_ex23_scr, crit_in1_scr:crit_in6_scr,
+              crit_ex1_pre:crit_ex23_pre, crit_in1_pre:crit_in6_pre),
     names_to = c("Cuerpos","Eventos"),
-    names_pattern = paste0("^(.*)_(", paste(Eventos, collapse="|"), ")$"),
-    values_to = "valor",
-    values_transform = list(valor = as.character)  
-  ) %>%
+    names_pattern = PatronNombres,
+    values_to = "valor") %>%
   pivot_wider(
-    id_cols = c(record_id, male_pre, date_start_pre, country_pre, age_pre,
+    id_cols = c(record_id, male_pre, date_start_pre,country_pre,age_pre,
                 job_pre, retirement_pre,
-                marital_status_pre, living_alone_pre, education_pre, education_years_base,
+                marital_status_pre,living_alone_pre,education_pre,education_years_base,
                 tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
-                heart_failure_pre, cardiac_surgery_pre, stroke_pre, ait_pre,
+                heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
                 reason_not_rdz_scr, reason_rdz_scr,
                 crit_ex1_scr:crit_ex23_scr, crit_in1_scr:crit_in6_scr,
                 crit_ex1_pre:crit_ex23_pre, crit_in1_pre:crit_in6_pre,
-                glicemia_pre, diabetes_pre, rdz_yn_scr, rdz_rdz, date_rdz_rdz,
-                Eventos),
-    names_from  = Cuerpos,
-    values_from = valor
-  ) %>%
+                glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,Eventos),
+    names_from = Cuerpos,
+    values_from = valor) %>%
+  arrange(record_id, Eventos) %>%
   mutate(
-    Eventos = trimws(as.character(Eventos)),
-    Eventos = factor(Eventos, levels = niveles_evento, ordered = TRUE)
-  ) %>%
-  mutate(
-    across(any_of(Cuerpos_numericas), ~ suppressWarnings(as.numeric(.))),
-    across(any_of(Cuerpos_fechas),    ~ suppressWarnings(lubridate::ymd(.)))
-  ) %>%
-  arrange(record_id, Eventos)
+    Eventos = factor(Eventos,
+                     levels = c("pre","scr","base","6m","12m","18m","24m"))
+  )
 
 
 #-------------------------------------------------------------------------------
@@ -220,10 +227,10 @@ id_erroneos_2 <- c("316-3","320-24","320-39","324-60","324-73",
                    "314-101", "314-105", "314-124", "314-148",
                    "314-154",
                    "315-1", "315-2", "315-3", "315-9", "315-10", 
-                 "315-11", "315-13", "315-15", "315-16", "315-17", 
-                 "315-18", "315-19", "315-21", "315-37", "315-48", 
-                 "312-167", "318-41", "316-102", "321-154", 
-                 "321-156", "321-157", "321-163", "321-159")
+                   "315-11", "315-13", "315-15", "315-16", "315-17", 
+                   "315-18", "315-19", "315-21", "315-37", "315-48", 
+                   "312-167", "318-41", "316-102", "321-154", 
+                   "321-156", "321-157", "321-163", "321-159")
 
 df_v4 <- df_v4 %>%
   mutate(
@@ -489,32 +496,10 @@ df_v4 <- df_v4 %>%
                                  1L, IniciaIntervencion))
 
 #-------------------------------------------------------------------------------
-#                              ¿ES DROPOUT?
-#-------------------------------------------------------------------------------
-
-df <- df_v4 %>%
-  group_by(record_id) %>%
-  mutate(
-    EsDropout = if_else((any(!is.na(dropout_reason) | !is.na(dropout_phase)) & 
-                              Randomization == "Yes"), 
-                        "Dropout", "No-Dropout")
-  ) %>%
-  ungroup()
-
-library(dplyr)
-library(tidyr)
-
-df <- df %>%
-  group_by(record_id) %>%
-  arrange(Eventos, .by_group = TRUE) %>%
-  fill(dropout_phase, .direction = "downup") %>%
-  ungroup()
-
-#-------------------------------------------------------------------------------
 #                        MIND SCORE 
 #-------------------------------------------------------------------------------
 
-df <- df %>%
+df <- df_v4 %>%
   mutate(
     mind1 = if_else(pointerfood1 < 2, 0, if_else(pointerfood1 == 3, 0.5, 1)),#check
     mind2 = if_else(pointerfood2 < 4, 1, if_else(pointerfood2 == 4, 0.5, 0)),#check
@@ -566,7 +551,7 @@ df <- df %>%
     AsistenciaInicioFin = if_else(TieneBase & Tiene24m, 1, 0),
     BaseMasUno = if_else(TieneBase == TRUE & 
                            (Tiene6m == TRUE | Tiene12m == TRUE |
-                           Tiene18m == TRUE | Tiene24m == TRUE), 1, 0)
+                              Tiene18m == TRUE | Tiene24m == TRUE), 1, 0)
   ) %>%
   ungroup()
 
@@ -638,16 +623,122 @@ df <- df %>%
                              NA, tiempo_parte_c))
 
 #-------------------------------------------------------------------------------
-#                            FECHAS Y DROPOUTS
+#                              ¿ES DROPOUT?
 #-------------------------------------------------------------------------------
 
 df <- df %>%
-  group_by(record_id)%>%
+  group_by(record_id) %>%
   mutate(
-    dropout_meses = interval(date_rdz_rdz, dropout_date) / months(1))
+    EsDropout = if_else(Randomization == "Yes" & Tiene24m == FALSE,
+                          "Dropout", "No-Dropout"))%>%
+  ungroup()
 
-dfFechas <- df %>%
-  filter(Randomization == "Yes",
-         EsDropout == "Dropout",Eventos == "24m" )%>%
-  select(record_id, center, dropout_meses, date_rdz_rdz, dropout_date)
-View(dfFechas)
+dfcheckeo <- df %>%
+  filter(Eventos == "24m", Randomization == "Yes")%>%
+  select(record_id, Tiene24m, EsDropout, dropout_phase)
+
+df <- df %>%
+  group_by(record_id) %>%
+  arrange(Eventos, .by_group = TRUE) %>%
+  fill(dropout_phase, .direction = "downup") %>%
+  ungroup()
+
+#-------------------------------------------------------------------------------
+#                      ADHERENCIA MÍNIMA
+#-------------------------------------------------------------------------------
+
+# ¿Qué tengo que hacer?
+# Tengo que crear una columna que indique si la persona adhirió (sea en 
+# la actividad que sea) a la intervención en el intervalo. 
+ef_w   <- function(weeks) paste0("ef_week_", rep(weeks,  each = 4), "_", 1:4)
+nis_w  <- function(weeks) paste0("nis_week_", weeks)
+ec_w   <- function(weeks) paste0("ec_week_",  rep(weeks,  each = 7), "_", 1:7)
+w_0_6   <- 1:26
+w_6_12  <- 27:52
+w_12_18 <- w_0_6
+w_18_24 <- w_6_12
+cols_0_6   <- c(ef_w(w_0_6),   nis_w(w_0_6),   ec_w(w_0_6))
+cols_6_12  <- c(ef_w(w_6_12),  nis_w(w_6_12),  ec_w(w_6_12))
+cols_12_18 <- c(ef_w(w_12_18), nis_w(w_12_18), ec_w(w_12_18))
+cols_18_24 <- c(ef_w(w_18_24), nis_w(w_18_24), ec_w(w_18_24))
+cols_0_6   <- intersect(cols_0_6,   names(df))
+cols_6_12  <- intersect(cols_6_12,  names(df))
+cols_12_18 <- intersect(cols_12_18, names(df))
+cols_18_24 <- intersect(cols_18_24, names(df))
+teams_0_6 <- c(
+  "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
+  "nis_grupal1","nis_grupal2","nis_grupal3","nis_grupal4",
+  "ef_grupal1","ef_grupal2","ef_grupal3","ef_grupal4",
+  "hmi_4capacitacion1","hmi_4capacitacion2","hmi_4capacitacion3","hmi_4capacitacion4",
+  "mgr_5grupal1","mgr_5grupal2","mgr_6grupal1","mgr_6grupal2"
+)
+
+teams_6_12  <- c("mgr_7grupal1","mgr_8grupal1","mgr_9grupal1",
+                 "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1")
+
+teams_12_18 <- c("mgr_1grupal1","mgr_2grupal1","mgr_3grupal1",
+                 "mgr_4grupal1","mgr_5grupal1","mgr_6grupal1")
+
+teams_18_24 <- c("mgr_7grupal1","mgr_8grupal1","mgr_9grupal1",
+                 "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1")
+teams_0_6   <- intersect(teams_0_6,   names(df))
+teams_6_12  <- intersect(teams_6_12,  names(df))
+teams_12_18 <- intersect(teams_12_18, names(df))
+teams_18_24 <- intersect(teams_18_24, names(df))
+
+all_0_6   <- c(cols_0_6,   teams_0_6)
+all_6_12  <- c(cols_6_12,  teams_6_12)
+all_12_18 <- c(cols_12_18, teams_12_18)
+all_18_24 <- c(cols_18_24, teams_18_24)
+
+cond <- function(x) {
+  if (is.numeric(x)) return(!is.na(x) & x != 0)
+  if (is.logical(x)) return(!is.na(x) & x)
+  if (is.character(x)) {
+    vx <- trimws(tolower(x))
+    return(!is.na(vx) & vx %in% c("1","si","sí","yes","true","x","hecho","ok"))
+  }
+  # fallback
+  !is.na(x) & x != 0
+}
+
+row_any <- function(data, cols) {
+  if (length(cols) == 0) return(rep(FALSE, nrow(data)))
+  rowSums(sapply(cols, function(c) cond(data[[c]]))) > 0
+}
+
+df_flags <- df %>%
+  mutate(
+    has_0_6   = (Eventos == "base") & row_any(cur_data(), all_0_6),
+    has_6_12  = (Eventos == "base") & row_any(cur_data(), all_6_12),
+    has_12_18 = (Eventos == "12m")  & row_any(cur_data(), all_12_18),
+    has_18_24 = (Eventos == "12m")  & row_any(cur_data(), all_18_24))
+
+adher_por_id <- df_flags %>%
+  dplyr::group_by(record_id) %>%
+  dplyr::summarise(
+    adher_0_6   = as.integer(any(has_0_6,   na.rm = TRUE)),
+    adher_6_12  = as.integer(any(has_6_12,  na.rm = TRUE)),
+    adher_12_18 = as.integer(any(has_12_18, na.rm = TRUE)),
+    adher_18_24 = as.integer(any(has_18_24, na.rm = TRUE)),
+    .groups = "drop")
+
+
+df <- df %>% dplyr::left_join(adher_por_id, by = "record_id")
+View(df)
+
+dfCuenta <- df %>%
+  group_by(record_id)%>%
+  filter(Randomization == "Yes" & Arm == "Systematic" &
+           Eventos == "base")%>%
+  mutate(
+    SumaAdhMin = sum(adher_0_6,adher_6_12,
+                     adher_18_24, adher_12_18))%>%
+  select(record_id, center, 
+         adher_0_6,adher_6_12,
+         adher_18_24, adher_12_18, EsDropout,
+         TieneBase, Tiene6m, Tiene12m, Tiene18m,
+         Tiene24m, SumaAdhMin)
+  
+View(dfCuenta)
+
