@@ -4,7 +4,7 @@ library(tidyverse)
 library(lubridate)
 
 #Me traigo la base de datos
-df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-01.csv")
+df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-10.csv")
 
 
 #-------------------------------------------------------------------------------
