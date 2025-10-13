@@ -582,20 +582,20 @@ df <- df %>%
 
 df <- df %>%
   mutate(
-    #Si el TMT-A es mayor a 300, lo dejo en 300.
-    tima_trail_a = if_else(tima_trail_a > 300, 300, tima_trail_a),
-    tima_trail_a = if_else(tima_trail_a == 300, NA, tima_trail_a),
     #Este ID se olvidó los anteojos a los 24m.
     tima_trail_a = if_else(record_id == "320-45" & 
                              Eventos == "24m", NA, tima_trail_a),
     tima_trail_b = if_else(record_id == "320-45" & 
                              Eventos == "24m", NA, tima_trail_b),
+    tima_trail_a = if_else(tima_trail_a > 150, 150, tima_trail_a),
+    #Si el TMT-A es mayor a 150, lo dejo en 150.
+    #Si el TMT-A es 0, lo dejo en NA.
+    tima_trail_a = if_else(tima_trail_a == 0, NA, tima_trail_a),
+    #Si el TMT B es mayor a 300, lo dejo en 300
+    tima_trail_b = if_else(tima_trail_b > 300, 300, tima_trail_b),
+    tima_trail_b = if_else(tima_trail_b == 0, NA, tima_trail_b),
     #Todos los interrumpidos pasan a ser NA
     tima_trail_b = if_else(trail_interrupt_test == 1, NA, tima_trail_b),
-    #Si el TMT tiene un 0, va NA.
-    tima_trail_a = if_else(tima_trail_a == 0, NA, tima_trail_a),
-    tima_trail_b = if_else(tima_trail_b == 0,
-                           NA, tima_trail_b),
     #Si el stroop está en 0, va NA.
     stroop_p = if_else(stroop_p == 0, NA, stroop_p),
     stroop_c = if_else(stroop_c == 0, NA, stroop_c),
@@ -612,14 +612,11 @@ df <- df %>%
     stroop_pc = if_else(record_id == "320-45" & Eventos == "24m",
                         NA, stroop_pc),
     #CST
-    tiempo_parte_a = if_else(tiempo_parte_a == 0 |
-                               tiempo_parte_a == 300,
+    tiempo_parte_a = if_else(tiempo_parte_a == 0,
                              NA, tiempo_parte_a),
-    tiempo_parte_b = if_else(tiempo_parte_b == 0 |
-                               tiempo_parte_b == 300,
+    tiempo_parte_b = if_else(tiempo_parte_b == 0,
                              NA, tiempo_parte_b),
-    tiempo_parte_c = if_else(tiempo_parte_c == 0 |
-                               tiempo_parte_c == 300,
+    tiempo_parte_c = if_else(tiempo_parte_c == 0,
                              NA, tiempo_parte_c))
 
 #-------------------------------------------------------------------------------
@@ -725,7 +722,6 @@ adher_por_id <- df_flags %>%
 
 
 df <- df %>% dplyr::left_join(adher_por_id, by = "record_id")
-View(df)
 
 dfCuenta <- df %>%
   group_by(record_id)%>%
@@ -740,5 +736,3 @@ dfCuenta <- df %>%
          TieneBase, Tiene6m, Tiene12m, Tiene18m,
          Tiene24m, SumaAdhMin)
   
-View(dfCuenta)
-
