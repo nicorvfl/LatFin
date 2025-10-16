@@ -23,7 +23,7 @@ dfRDZ <- df %>%
   filter(Randomization == "No", 
          Eventos == "scr")%>%
   select(record_id, center, Randomization,
-         RDZReason, reason_rdz_scr)
+         reason_rdz_scr)
 
 View(dfRDZ)
 
@@ -45,7 +45,7 @@ RDZ <- df %>%
 #¿Cuántos randomizados hay?
 num_rdz <- df %>%
   filter(Eventos == "base") %>%
-  group_by(Arm) %>%
+ # group_by(Arm) %>%
   summarise(suma = sum(Randomization == "Yes", na.rm = TRUE))
 num_rdz
 #1105 randomizados
@@ -98,16 +98,63 @@ ggplot(GROUPS, aes(x = center, fill = Arm)) +
   theme_bw()+
   theme(plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5))
-theme_replace()
 
 
 #-------------------------------------------------------------------------------
 #                   ¿QUIÉNES DEJARON ANTES DE INICIAR?
 #-------------------------------------------------------------------------------
 
+#randomizados en flex
+Randomizados <- df %>%
+  filter(Eventos == "base",Randomization == "Yes" & 
+           Arm == "Flexible")%>%
+  summarise(Cantidad = n())
+Randomizados
+
+#cuántos tienen fecha de inicio
+FechaInicio <- df %>%
+  filter(Eventos == "base",Randomization == "Yes" & 
+           Arm == "Flexible", IniciaIntervencion == 0)%>%
+  select(record_id, Arm, EsDropout, dropout_phase)
+View(FechaInicio)
+
+SinFecha <- df%>%
+  filter(Randomization == "Yes" & Eventos =="base" &
+           Arm == "Flexible", dropout_phase == 0
+         )%>%
+  select(record_id, center, gf_date,
+         EsDropout, dropout_phase,Eventos, IniciaIntervencion)
+
+View(SinFecha)
+
+drop <- df %>%
+  filter(Randomization == "Yes" & Eventos == "base" &
+           Arm == "Flexible")%>%
+  group_by(dropout_phase)%>%
+  summarise(cantidad = n())
+View(drop)
+
+dftest <- df %>%
+  filter(Eventos == "base", Randomization == "Yes")%>%
+  group_by(Arm)
+
+table(dftest$IniciaIntervencion, dftest$Arm)
 
 Iniciaron <- df %>%
   filter(Eventos == "base", IniciaIntervencion == 1)
+
+SinIniciaFlex <- df %>%
+  filter(is.na(gf_date),
+         Randomization == "Yes", Arm == "Flexible",
+         Eventos == "24m")%>%
+  select(record_id, center, Randomization,
+         Arm, EsDropout, dropout_phase)
+
+SinIniciaFlex %>%
+  summarise(
+    Cantidad = sum(dropout_phase == 0, na.rm = TRUE)
+  )
+
 
 ggplot(Iniciaron, aes(x = center, fill = Arm)) +
   geom_bar(position = "dodge") +
@@ -127,14 +174,14 @@ ggplot(Iniciaron, aes(x = center, fill = Arm)) +
   theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14))
 
 
-CuantosIniciaron <- df %>%
+CuantosNoIniciaron <- df %>%
   group_by(Arm)%>%
   filter(Eventos == "base",
          Randomization == "Yes")%>%
   filter(IniciaIntervencion == 0)%>%
   count()
 
-CuantosIniciaron  
+CuantosNoIniciaron  
 
 #-------------------------------------------------------------------------------
 #            ¿QUIÉNES SE FUERON ANTES DE INICIAR LA INTERVENCIÓN?
@@ -142,50 +189,32 @@ CuantosIniciaron
 
 Flex_Started <- df %>%
   filter(Randomization == "Yes",
-         Arm == "Flexible",
-         Eventos == "base",
-         IniciaIntervencion == 1) %>%
-  distinct(record_id, center, Arm)
+         Eventos == "24m",
+         EsDropout == "Dropout") %>%
+  distinct(record_id, center, Arm, IniciaIntervencion,DropoutReason)%>%
+  filter(IniciaIntervencion == 1)%>%
+  group_by(Arm)%>%
+  select(record_id, Arm, DropoutReason, center)%>%
+  filter(Arm == "Systematic")%>%
+  group_by(DropoutReason)
 
-Dropout24m_form_Flex <- df %>%
+Flex_Started %>%
+  summarise(cantidad = n())
+
+View(Flex_Started)
+
+dfdrop <- df%>%
   filter(Eventos == "24m",
-         Arm == "Flexible",
-         record_id %in% Flex_Started$record_id) %>%
-  group_by(record_id) %>%
-  summarise(
-    dropout_phase  = first(na.omit(dropout_phase)),
-    dropout_reason = first(na.omit(dropout_reason)),
-    .groups = "drop"
-  )
-
-FlexStarted_con_form <- Flex_Started %>%
-  left_join(Dropout24m_form_Flex, by = "record_id") %>%
-  mutate(
-    tiene_formulario = !is.na(dropout_phase) | !is.na(dropout_reason),
-    form_status2     = if_else(tiene_formulario, "con_formulario", "sin_formulario"),
-    phase_label = case_when(
-      dropout_phase == 0 ~ "before_start",
-      dropout_phase == 1 ~ "during_intervention",
-      dropout_phase == 2 ~ "post_intervention",
-      TRUE ~ NA_character_
-    )
-  )
-
-FlexStarted_con_form %>% count(form_status2, sort = TRUE)
-
-Flex_con_form <- FlexStarted_con_form %>%
-  filter(tiene_formulario) %>%
-  select(record_id, center, dropout_phase, phase_label, dropout_reason) %>%
-  arrange(center, record_id)
-View(Flex_con_form)
-
+         EsDropout == "Dropout",
+         Randomization == "Yes")%>%
+  select(record_id, EsDropout)%>%
+  summarise(cantidad = n())
+View(dfdrop)
 
 dfDrop <- df %>%
   filter(Eventos == "24m",
-         Randomization == "Yes")%>%
-  mutate(
-    EsDrop = if_else(!is.na(dropout_phase), 1, 0)
-  )
+         Randomization == "Yes",
+         EsDropout == "Dropout")
 
 
 ggplot(dfDrop, aes(x = Arm, fill = factor(IniciaIntervencion))) +
@@ -250,7 +279,9 @@ Cuentita <- Cuentita %>%
   mutate(
     Eventos = factor(Eventos, 
                      levels = c("scr","pre","base","6m",
-                                "12m","18m","24m")))
+                                "12m","18m","24m")))%>%
+  filter(Eventos %in% c("base","6m",
+                        "12m","18m","24m"))
 View(Cuentita)
 
 ggplot(Cuentita, aes(x = Eventos, y = n_completas,
@@ -264,6 +295,37 @@ ggplot(Cuentita, aes(x = Eventos, y = n_completas,
                                "Systematic" = "#008B00"))+
   theme_bw()+
   labs(title = "Número de evaluaciones por evento")   
+
+
+
+#-------------------------------------------------------------------------------
+#                                DROPOUTS
+#-------------------------------------------------------------------------------
+
+#Cuántos dropouts hay?
+dropouts <- df %>%
+  filter(EsDropout == "Dropout",
+         Randomization == "Yes",
+         Eventos == "24m")%>%
+  select(record_id, center, Arm, DropoutPhase, DropoutReason,
+         TieneBase, Tiene6m, Tiene12m, Tiene18m, Tiene24m)
+View(dropouts)
+
+dropouts %>% summarise(
+  cantidad = n(),
+  cantidad_na = sum(is.na(DropoutPhase) | is.na(DropoutReason))) 
+# 238 dropouts
+# hasta ahora: 25 personas sin fase.
+
+SinFase <- dropouts%>%
+  filter(is.na(DropoutPhase))%>%
+  select(record_id, center, DropoutPhase)%>%
+  group_by(center)%>%
+  summarise(cantidad = n())
+SinFase
+
+
+
 
 
 

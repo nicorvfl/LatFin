@@ -18,7 +18,8 @@ Renegados <- df %>%
 
 #¿Quién se va por su propia cuenta?
 Abandonadores <- Renegados %>%
-  filter(reason_not_rdz_scr == 1)
+  filter(reason_not_rdz_scr == 1)%>%
+  select(record_id, reason_not_rdz_scr)
 View(Abandonadores)
 
 #¿A quién echamos?
@@ -34,14 +35,8 @@ View(Echados)
 #                           SE DIVIDEN LAS AGUAS
 #-------------------------------------------------------------------------------
 
-LosNA <- SegundaPuerta %>%
-  filter(is.na(SeVa))
-View(LosNA)
-write_xlsx(LosNA, "C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/LosNA.xlsx")
-
 #Ok, ahora empieza el baile.
 #Tengo que colocar ese dato en los id.
-
 
 # Lista 1: Solo Cognitivos = 1
 ids_cognitivos <- c(
@@ -98,8 +93,6 @@ PrimeraPuerta %>%
     Cantidad = sum(if_else(SeVa == "Se va primero", 1, 0), na.rm = TRUE))
 
 
-PrimeraPuertaCheck <- PrimeraPuerta %>%
-  filter(record_in %in% c("325-182","325-184"))
 
 #-------------------------------------------------------------------------------
 #                           LOS QUE SE VAN DESPUÉS
