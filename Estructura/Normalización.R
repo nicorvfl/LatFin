@@ -4,8 +4,7 @@ library(tidyverse)
 library(lubridate)
 
 #Me traigo la base de datos
-df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-10.csv")
-
+df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-13.csv")
 
 #-------------------------------------------------------------------------------
 #----------------------- CAMBIOS SIMPLES ---------------------------------------
@@ -87,8 +86,10 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "nis_telefonica5_1" ,"nis_telefonica5_2",
              "nis_telefonica6_1", "nis_telefonica6_2", "nis_telefonica7",   
              "nis_telefonica8","nis_telefonica9" ,  "nis_telefonica10",  
-             "nis_telefonica11","nis_telefonica12","nis_telefonica13"
-)
+             "nis_telefonica11","nis_telefonica12","nis_telefonica13",
+             "flexible_yn",
+             "csta_errores","cstb_errores","cstc_errores",
+             "cst_comments")
 
 
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
@@ -474,8 +475,22 @@ df_v4 <- df_v4 %>%
       dropout_reason == 2 ~ "Eligibility criteria error",
       dropout_reason == 3 ~ "Participant withdrew",
       TRUE ~ NA_character_  
-    )
-  )
+    ),
+    DropoutPhase = case_when(
+      dropout_phase == 0 ~ "Between RDZ and Intervention Start",
+      dropout_phase == 1 ~ "Between 1-6 months",
+      dropout_phase == 2 ~ "Between 6-12 months",
+      dropout_phase == 3 ~ "Between 12-18 months",
+      dropout_phase == 4 ~ "Between 18-24 months"
+    ),
+    DropoutPhase = factor(DropoutPhase,
+                             levels = c("Between RDZ and Intervention Start",
+                                       "Between 1-6 months",
+                                       "Between 6-12 months",
+                                       "Between 12-18 months",
+                                       "Between 18-24 months"),
+                          ordered = TRUE))
+
 
 #-------------------------------------------------------------------------------
 #Empezó la intervención
@@ -619,6 +634,17 @@ df <- df %>%
     tiempo_parte_c = if_else(tiempo_parte_c == 0,
                              NA, tiempo_parte_c))
 
+df <- df %>%
+  mutate(
+    PromedioCero = (tiempo1 + tiempo2) / 2,
+    PromedioCero = if_else(PromedioCero == 0, NA, PromedioCero),
+    cstA = if_else(!is.na(csta),
+                   (tiempo_parte_a - PromedioCero), NA),
+    cstB = if_else(!is.na(cstb),
+                   (tiempo_parte_b - PromedioCero), NA),
+    cstC = if_else(!is.na(cstc),
+                   (tiempo_parte_c - PromedioCero), NA))
+
 #-------------------------------------------------------------------------------
 #                              ¿ES DROPOUT?
 #-------------------------------------------------------------------------------
@@ -647,6 +673,11 @@ df <- df %>%
 # ¿Qué tengo que hacer?
 # Tengo que crear una columna que indique si la persona adhirió (sea en 
 # la actividad que sea) a la intervención en el intervalo. 
+
+#-------------------------------------------------------------------------------
+#                              SISTEMÁTICO
+#-------------------------------------------------------------------------------
+
 ef_w   <- function(weeks) paste0("ef_week_", rep(weeks,  each = 4), "_", 1:4)
 nis_w  <- function(weeks) paste0("nis_week_", weeks)
 ec_w   <- function(weeks) paste0("ec_week_",  rep(weeks,  each = 7), "_", 1:7)
@@ -735,4 +766,20 @@ dfCuenta <- df %>%
          adher_18_24, adher_12_18, EsDropout,
          TieneBase, Tiene6m, Tiene12m, Tiene18m,
          Tiene24m, SumaAdhMin)
-  
+
+#-------------------------------------------------------------------------------
+#                         DROPOUTS que pasan a ser no RDZ
+#-------------------------------------------------------------------------------
+
+df <- df %>% mutate(Randomization = as.character(Randomization))
+df <- df %>%
+  group_by(record_id) %>%
+  mutate(
+    drop = any(dropout_reason == 2, na.rm = TRUE),    
+    Randomization = if_else(drop, "No", Randomization)) %>%
+  ungroup() %>%
+  select(-drop)
+df <- df %>%
+  mutate(Randomization = factor(Randomization, levels = c("Yes","No")))
+
+
