@@ -4,7 +4,7 @@ library(tidyverse)
 library(lubridate)
 
 #Me traigo la base de datos
-df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-13.csv")
+df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-20.csv")
 
 #-------------------------------------------------------------------------------
 #----------------------- CAMBIOS SIMPLES ---------------------------------------
@@ -600,6 +600,8 @@ df <- df %>%
     #Este ID se olvidó los anteojos a los 24m.
     tima_trail_a = if_else(record_id == "320-45" & 
                              Eventos == "24m", NA, tima_trail_a),
+    tima_trail_b = if_else(record_id == "324-44" & 
+                             Eventos == "6m", NA, tima_trail_b),
     tima_trail_b = if_else(record_id == "320-45" & 
                              Eventos == "24m", NA, tima_trail_b),
     tima_trail_a = if_else(tima_trail_a > 150, 150, tima_trail_a),
@@ -632,7 +634,9 @@ df <- df %>%
     tiempo_parte_b = if_else(tiempo_parte_b == 0,
                              NA, tiempo_parte_b),
     tiempo_parte_c = if_else(tiempo_parte_c == 0,
-                             NA, tiempo_parte_c))
+                             NA, tiempo_parte_c),
+    score_wais_bruto = if_else(score_wais_bruto == 0,
+                               NA, score_wais_bruto))
 
 df <- df %>%
   mutate(
@@ -678,21 +682,21 @@ df <- df %>%
 #                              SISTEMÁTICO
 #-------------------------------------------------------------------------------
 
-ef_w   <- function(weeks) paste0("ef_week_", rep(weeks,  each = 4), "_", 1:4)
-nis_w  <- function(weeks) paste0("nis_week_", weeks)
-ec_w   <- function(weeks) paste0("ec_week_",  rep(weeks,  each = 7), "_", 1:7)
-w_0_6   <- 1:26
-w_6_12  <- 27:52
-w_12_18 <- w_0_6
-w_18_24 <- w_6_12
-cols_0_6   <- c(ef_w(w_0_6),   nis_w(w_0_6),   ec_w(w_0_6))
-cols_6_12  <- c(ef_w(w_6_12),  nis_w(w_6_12),  ec_w(w_6_12))
-cols_12_18 <- c(ef_w(w_12_18), nis_w(w_12_18), ec_w(w_12_18))
-cols_18_24 <- c(ef_w(w_18_24), nis_w(w_18_24), ec_w(w_18_24))
-cols_0_6   <- intersect(cols_0_6,   names(df))
-cols_6_12  <- intersect(cols_6_12,  names(df))
-cols_12_18 <- intersect(cols_12_18, names(df))
-cols_18_24 <- intersect(cols_18_24, names(df))
+#ef_w   <- function(weeks) paste0("ef_week_", rep(weeks,  each = 4), "_", 1:4)
+#nis_w  <- function(weeks) paste0("nis_week_", weeks)
+#ec_w   <- function(weeks) paste0("ec_week_",  rep(weeks,  each = 7), "_", 1:7)
+#w_0_6   <- 1:26
+#w_6_12  <- 27:52
+#w_12_18 <- w_0_6
+#w_18_24 <- w_6_12
+#cols_0_6   <- c(ef_w(w_0_6),   nis_w(w_0_6),   ec_w(w_0_6))
+#cols_6_12  <- c(ef_w(w_6_12),  nis_w(w_6_12),  ec_w(w_6_12))
+#cols_12_18 <- c(ef_w(w_12_18), nis_w(w_12_18), ec_w(w_12_18))
+#cols_18_24 <- c(ef_w(w_18_24), nis_w(w_18_24), ec_w(w_18_24))
+#cols_0_6   <- intersect(cols_0_6,   names(df))
+#cols_6_12  <- intersect(cols_6_12,  names(df))
+#cols_12_18 <- intersect(cols_12_18, names(df))
+#cols_18_24 <- intersect(cols_18_24, names(df))
 teams_0_6 <- c(
   "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
   "nis_grupal1","nis_grupal2","nis_grupal3","nis_grupal4",
@@ -714,10 +718,10 @@ teams_6_12  <- intersect(teams_6_12,  names(df))
 teams_12_18 <- intersect(teams_12_18, names(df))
 teams_18_24 <- intersect(teams_18_24, names(df))
 
-all_0_6   <- c(cols_0_6,   teams_0_6)
-all_6_12  <- c(cols_6_12,  teams_6_12)
-all_12_18 <- c(cols_12_18, teams_12_18)
-all_18_24 <- c(cols_18_24, teams_18_24)
+#all_0_6   <- c(cols_0_6,   teams_0_6)
+#all_6_12  <- c(cols_6_12,  teams_6_12)
+#all_12_18 <- c(cols_12_18, teams_12_18)
+#all_18_24 <- c(cols_18_24, teams_18_24)
 
 cond <- function(x) {
   if (is.numeric(x)) return(!is.na(x) & x != 0)
@@ -737,10 +741,10 @@ row_any <- function(data, cols) {
 
 df_flags <- df %>%
   mutate(
-    has_0_6   = (Eventos == "base") & row_any(cur_data(), all_0_6),
-    has_6_12  = (Eventos == "base") & row_any(cur_data(), all_6_12),
-    has_12_18 = (Eventos == "12m")  & row_any(cur_data(), all_12_18),
-    has_18_24 = (Eventos == "12m")  & row_any(cur_data(), all_18_24))
+    has_0_6   = (Eventos == "base") & row_any(cur_data(), teams_0_6),
+    has_6_12  = (Eventos == "base") & row_any(cur_data(), teams_6_12),
+    has_12_18 = (Eventos == "12m")  & row_any(cur_data(), teams_12_18),
+    has_18_24 = (Eventos == "12m")  & row_any(cur_data(), teams_18_24))
 
 adher_por_id <- df_flags %>%
   dplyr::group_by(record_id) %>%
@@ -764,8 +768,8 @@ dfCuenta <- df %>%
   select(record_id, center, 
          adher_0_6,adher_6_12,
          adher_18_24, adher_12_18, EsDropout,
-         TieneBase, Tiene6m, Tiene12m, Tiene18m,
          Tiene24m, SumaAdhMin)
+View(dfCuenta)
 
 #-------------------------------------------------------------------------------
 #                         DROPOUTS que pasan a ser no RDZ
@@ -776,10 +780,17 @@ df <- df %>%
   group_by(record_id) %>%
   mutate(
     drop = any(dropout_reason == 2, na.rm = TRUE),    
-    Randomization = if_else(drop, "No", Randomization)) %>%
+    Randomization = if_else(drop, "No", Randomization),
+    SumaAdhMin = sum(adher_0_6,adher_6_12,
+                     adher_18_24, adher_12_18)) %>%
   ungroup() %>%
   select(-drop)
 df <- df %>%
   mutate(Randomization = factor(Randomization, levels = c("Yes","No")))
+
+
+ggplot(df, aes(x = center, y = SumaAdhMin,
+               fill = EsDropout))+
+  geom_boxplot()
 
 
