@@ -2,7 +2,7 @@ library(dplyr)
 library(arsenal)
 library(forcats)
 
-df_base_rdz <- df_v4 %>%
+df_base_rdz <- df %>%
   filter(Eventos == "base", Randomization == "Yes") %>%
   distinct(record_id, .keep_all = TRUE) %>%
   mutate(Arm = factor(Arm))
