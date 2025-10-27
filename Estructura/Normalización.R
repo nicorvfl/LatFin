@@ -5,7 +5,7 @@ library(lubridate)
 
 #Me traigo la base de datos
 df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-20.csv")
-
+ 
 #-------------------------------------------------------------------------------
 #----------------------- CAMBIOS SIMPLES ---------------------------------------
 #Antes que nada, por las dudas, voy a convertir el formato minutos:segundos a 
@@ -190,23 +190,29 @@ df_v3 <- df_v2 %>%
 #cuenta con 2.
 #-------------------------------------------------------------------------------
 
+library(dplyr)
+library(stringr)
+
 df_v4 <- df_v3 %>%
   mutate(
     CodigoCentro = str_extract(record_id, "^[0-9]+"),
-    center = case_when(
-      CodigoCentro == "312" ~ "Argentina",
-      CodigoCentro == "325" ~ "Bolivia",
-      CodigoCentro == "317" ~ "Brasil",
-      CodigoCentro == "316" ~ "Brasil",
-      CodigoCentro == "315" ~ "Chile",
-      CodigoCentro == "314" ~ "Colombia",
-      CodigoCentro == "321" ~ "Costa Rica",
-      CodigoCentro == "318" ~ "Ecuador",
-      CodigoCentro == "313" ~ "México",
-      CodigoCentro == "320" ~ "Perú",
-      CodigoCentro == "319" ~ "Uruguay",
-      CodigoCentro == "324" ~ "República Dominicana",
-      TRUE ~ "Otro"))
+    center = dplyr::recode(
+      CodigoCentro,
+      "312" = "Argentina",
+      "325" = "Bolivia",
+      "317" = "Brasil",
+      "316" = "Brasil",
+      "315" = "Chile",
+      "314" = "Colombia",
+      "321" = "Costa Rica",
+      "318" = "Ecuador",
+      "313" = "M\u00E9xico",  
+      "320" = "Per\u00FA",    
+      "319" = "Uruguay",
+      "324" = "RepDom",
+      .default = NA_character_
+    ))
+
 
 #-------------------------------------------------------------------------------
 #Arreglo personas que no están randomizadas
@@ -412,6 +418,7 @@ df_v4 <- df_v4 %>%
 #Quiero crear una columna que me diga si el sujeto tiene o no la ev. completa
 #-------------------------------------------------------------------------------
 
+
 TestNps = c(
   "imm_recalltotal","score_wais_bruto","score_wais_escalar",
   "forwardtotcorrect","backwardtotcorrect","sequencetotcorrect",
@@ -425,6 +432,7 @@ TestNps = c(
   "totalfreerecall","totalfreerecall_2","tiempo_parte_a","tiempo_parte_b",
   "tiempo_parte_c","tiempo1","tiempo2","totale_rdl","totale_rdc",
   "totales_tardia","animaltotcorrect_vc","p_total_score","m_total_score")
+
 
 # cuántas columnas de TestNps existen realmente en df_v4
 eval_present <- intersect(TestNps, names(df_v4))
@@ -682,21 +690,21 @@ df <- df %>%
 #                              SISTEMÁTICO
 #-------------------------------------------------------------------------------
 
-#ef_w   <- function(weeks) paste0("ef_week_", rep(weeks,  each = 4), "_", 1:4)
-#nis_w  <- function(weeks) paste0("nis_week_", weeks)
-#ec_w   <- function(weeks) paste0("ec_week_",  rep(weeks,  each = 7), "_", 1:7)
-#w_0_6   <- 1:26
-#w_6_12  <- 27:52
-#w_12_18 <- w_0_6
-#w_18_24 <- w_6_12
-#cols_0_6   <- c(ef_w(w_0_6),   nis_w(w_0_6),   ec_w(w_0_6))
-#cols_6_12  <- c(ef_w(w_6_12),  nis_w(w_6_12),  ec_w(w_6_12))
-#cols_12_18 <- c(ef_w(w_12_18), nis_w(w_12_18), ec_w(w_12_18))
-#cols_18_24 <- c(ef_w(w_18_24), nis_w(w_18_24), ec_w(w_18_24))
-#cols_0_6   <- intersect(cols_0_6,   names(df))
-#cols_6_12  <- intersect(cols_6_12,  names(df))
-#cols_12_18 <- intersect(cols_12_18, names(df))
-#cols_18_24 <- intersect(cols_18_24, names(df))
+ef_w   <- function(weeks) paste0("ef_week_", rep(weeks,  each = 4), "_", 1:4)
+nis_w  <- function(weeks) paste0("nis_week_", weeks)
+ec_w   <- function(weeks) paste0("ec_week_",  rep(weeks,  each = 7), "_", 1:7)
+w_0_6   <- 1:26
+w_6_12  <- 27:52
+w_12_18 <- w_0_6
+w_18_24 <- w_6_12
+cols_0_6   <- c(ef_w(w_0_6),   nis_w(w_0_6),   ec_w(w_0_6))
+cols_6_12  <- c(ef_w(w_6_12),  nis_w(w_6_12),  ec_w(w_6_12))
+cols_12_18 <- c(ef_w(w_12_18), nis_w(w_12_18), ec_w(w_12_18))
+cols_18_24 <- c(ef_w(w_18_24), nis_w(w_18_24), ec_w(w_18_24))
+cols_0_6   <- intersect(cols_0_6,   names(df))
+cols_6_12  <- intersect(cols_6_12,  names(df))
+cols_12_18 <- intersect(cols_12_18, names(df))
+cols_18_24 <- intersect(cols_18_24, names(df))
 teams_0_6 <- c(
   "ec_grupal1","ec_grupal2","ec_grupal3","ec_grupal4",
   "nis_grupal1","nis_grupal2","nis_grupal3","nis_grupal4",
@@ -713,15 +721,16 @@ teams_12_18 <- c("mgr_1grupal1","mgr_2grupal1","mgr_3grupal1",
 
 teams_18_24 <- c("mgr_7grupal1","mgr_8grupal1","mgr_9grupal1",
                  "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1")
+
 teams_0_6   <- intersect(teams_0_6,   names(df))
 teams_6_12  <- intersect(teams_6_12,  names(df))
 teams_12_18 <- intersect(teams_12_18, names(df))
 teams_18_24 <- intersect(teams_18_24, names(df))
 
-#all_0_6   <- c(cols_0_6,   teams_0_6)
-#all_6_12  <- c(cols_6_12,  teams_6_12)
-#all_12_18 <- c(cols_12_18, teams_12_18)
-#all_18_24 <- c(cols_18_24, teams_18_24)
+all_0_6   <- c(cols_0_6,   teams_0_6)
+all_6_12  <- c(cols_6_12,  teams_6_12)
+all_12_18 <- c(cols_12_18, teams_12_18)
+all_18_24 <- c(cols_18_24, teams_18_24)
 
 cond <- function(x) {
   if (is.numeric(x)) return(!is.na(x) & x != 0)
@@ -741,10 +750,10 @@ row_any <- function(data, cols) {
 
 df_flags <- df %>%
   mutate(
-    has_0_6   = (Eventos == "base") & row_any(cur_data(), teams_0_6),
-    has_6_12  = (Eventos == "base") & row_any(cur_data(), teams_6_12),
-    has_12_18 = (Eventos == "12m")  & row_any(cur_data(), teams_12_18),
-    has_18_24 = (Eventos == "12m")  & row_any(cur_data(), teams_18_24))
+    has_0_6   = (Eventos == "base") & row_any(cur_data(), all_0_6),
+    has_6_12  = (Eventos == "base") & row_any(cur_data(), all_6_12),
+    has_12_18 = (Eventos == "12m")  & row_any(cur_data(), all_12_18),
+    has_18_24 = (Eventos == "12m")  & row_any(cur_data(), all_18_24))
 
 adher_por_id <- df_flags %>%
   dplyr::group_by(record_id) %>%
@@ -769,7 +778,6 @@ dfCuenta <- df %>%
          adher_0_6,adher_6_12,
          adher_18_24, adher_12_18, EsDropout,
          Tiene24m, SumaAdhMin)
-View(dfCuenta)
 
 #-------------------------------------------------------------------------------
 #                         DROPOUTS que pasan a ser no RDZ
@@ -777,20 +785,53 @@ View(dfCuenta)
 
 df <- df %>% mutate(Randomization = as.character(Randomization))
 df <- df %>%
+  mutate(Randomization = as.character(Randomization)) %>%
   group_by(record_id) %>%
   mutate(
-    drop = any(dropout_reason == 2, na.rm = TRUE),    
+    drop = any(dropout_reason == 2, na.rm = TRUE),
     Randomization = if_else(drop, "No", Randomization),
-    SumaAdhMin = sum(adher_0_6,adher_6_12,
-                     adher_18_24, adher_12_18)) %>%
+    SumaAdhMin = rowSums(across(c(adher_0_6, adher_6_12, adher_12_18, adher_18_24)), na.rm = TRUE)
+  ) %>%
   ungroup() %>%
-  select(-drop)
+  select(-drop) %>%
+  mutate(Randomization = factor(Randomization, levels = c("Yes", "No")))
 df <- df %>%
-  mutate(Randomization = factor(Randomization, levels = c("Yes","No")))
+  mutate(
+    Arm = if_else(Randomization == "No", NA_character_, Arm))
 
 
-ggplot(df, aes(x = center, y = SumaAdhMin,
-               fill = EsDropout))+
-  geom_boxplot()
+#-------------------------------------------------------------------------------
+#                    AJUSTES EN CASO DE NO RANDOMIZACIÓN
+#-------------------------------------------------------------------------------
+
+df <- df %>%
+  mutate(
+    TieneBase = if_else(Randomization == "No", NA, TieneBase),
+    Tiene6m = if_else(Randomization == "No", NA, Tiene6m),
+    Tiene12m = if_else(Randomization == "No", NA, Tiene12m),
+    Tiene18m = if_else(Randomization == "No", NA, Tiene18m),
+    Tiene24m = if_else(Randomization == "No", NA, Tiene24m),
+    Arm = if_else(Randomization == "No", NA, Arm),
+    EsDropout = if_else(Randomization == "No", NA, EsDropout),
+    IniciaIntervencion = if_else(Randomization == "No", NA, IniciaIntervencion))
+
+
+write.csv(df, "C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/df.csv", row.names = FALSE)
+
+
+
+dfDrop <- df %>%
+  filter(EsDropout == "No-Dropout",
+         Eventos == "24m")%>%
+  select(record_id, center,
+         dropout_phase, EsDropout)
+
+View(dfDrop)
+
+
+table(df$center)
+
+
+
 
 
