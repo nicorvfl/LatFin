@@ -4,8 +4,9 @@ library(tidyverse)
 library(lubridate)
 
 #Me traigo la base de datos
-df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-20.csv")
- 
+df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-28.csv")
+
+
 #-------------------------------------------------------------------------------
 #----------------------- CAMBIOS SIMPLES ---------------------------------------
 #Antes que nada, por las dudas, voy a convertir el formato minutos:segundos a 
@@ -190,9 +191,6 @@ df_v3 <- df_v2 %>%
 #cuenta con 2.
 #-------------------------------------------------------------------------------
 
-library(dplyr)
-library(stringr)
-
 df_v4 <- df_v3 %>%
   mutate(
     CodigoCentro = str_extract(record_id, "^[0-9]+"),
@@ -297,10 +295,7 @@ df_v4 <- df_v4 %>%
   mutate(
     APOE = case_when(
       apoe4 == 0 ~ "Non-carrier",
-      apoe4 > 0  ~ "Carrier"
-    )
-  )
-
+      apoe4 > 0  ~ "Carrier"))
 
 #-------------------------------------------------------------------------------
 #Paso el MMSE a baseline
@@ -585,19 +580,16 @@ df <- df %>%
 
 df <- df %>%
   mutate(
-    father_problems = case_when(
-      father_problem == 5 ~ "Psiquiátrico",
-      father_problem %in% c(1, 2, 3, 4) ~ "Neurológico",
-      father_problem == 8 ~ "Sin problemas",
-      father_problem == 9 ~ "Desconocido",
-      TRUE ~ NA_character_),
-    mother_problems = case_when(
-      mother_problem == 5 ~ "Psiquiátrico",
-      mother_problem %in% c(1, 2, 3, 4) ~ "Neurológico",
-      mother_problem == 8 ~ "Sin problemas",
-      mother_problem == 9 ~ "Desconocido",
-      TRUE ~ NA_character_)
+    fam_problems = case_when(
+      father_problem %in% c(1, 2, 3, 4, 5) |
+        mother_problem %in% c(1, 2, 3, 4, 5) ~ "Sí",
+      father_problem == 8 & mother_problem == 8 ~ "No",
+      father_problem == 9 & mother_problem == 9 ~ "Desconocido",
+      TRUE ~ NA_character_
+    )
   )
+
+df$fam_problems = as.factor(df$fam_problems)
 
 #-------------------------------------------------------------------------------
 #                       DECISIONES DE LIMPIEZA
@@ -816,22 +808,37 @@ df <- df %>%
     IniciaIntervencion = if_else(Randomization == "No", NA, IniciaIntervencion))
 
 
-write.csv(df, "C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/df.csv", row.names = FALSE)
+#-------------------------------------------------------------------------------
+#                           CREACIÓN DE VISITAS
+#-------------------------------------------------------------------------------
 
+df$visits = df$Eventos
+df <- df %>%
+  mutate(visits = recode(visits,
+                         "base" = "0",
+                         "6m" = "0.5", 
+                         "12m" = "1",
+                         "18m" = "1.5",
+                         "24m" = "2")) %>%
+  mutate(visits = droplevels(visits))
 
+#-------------------------------------------------------------------------------
+#               CREACIÓN DE COUNTER Y RENOMBRO VARIABLES
+#-------------------------------------------------------------------------------
 
-dfDrop <- df %>%
-  filter(EsDropout == "No-Dropout",
-         Eventos == "24m")%>%
-  select(record_id, center,
-         dropout_phase, EsDropout)
+df <- df %>%
+  arrange(record_id, Eventos) %>%
+  group_by(record_id) %>%
+  mutate(
+    any_global = ifelse(!is.na(global_composite), 1, 0),
+    counter = ifelse(any_global == 1, cumsum(any_global) - 1, NA)
+  ) %>%
+  select(-any_global) %>%
+  ungroup()
 
-View(dfDrop)
-
-
-table(df$center)
-
-
-
-
-
+df = df %>%
+  rename(age = age_pre,
+         sex = Sex,
+         education = education_years,
+         country = CodigoCentro,
+         id = record_id) 
