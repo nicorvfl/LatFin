@@ -64,6 +64,7 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "dropout_phase","dropout_reason", "fra_score", "mmse_total",
              "ifa18", "ifa19", "ifa20", "ifa21", "education_mother","mgr_count",
              "education_father", "live_area", "house_type", "ef_count",
+             "dropout_date",
              "mgr_1grupal1","mgr_2grupal1","mgr_3grupal1","mgr_4grupal1",
              "mgr_4grupal1", "mgr_5grupal1","mgr_5grupal2","mgr_6grupal1",
              "mgr_6grupal2","mgr_7grupal1","mgr_8grupal1","mgr_9grupal1",
@@ -826,19 +827,47 @@ df <- df %>%
 #               CREACIÓN DE COUNTER Y RENOMBRO VARIABLES
 #-------------------------------------------------------------------------------
 
-df <- df %>%
-  arrange(record_id, Eventos) %>%
-  group_by(record_id) %>%
-  mutate(
-    any_global = ifelse(!is.na(global_composite), 1, 0),
-    counter = ifelse(any_global == 1, cumsum(any_global) - 1, NA)
-  ) %>%
-  select(-any_global) %>%
-  ungroup()
-
 df = df %>%
   rename(age = age_pre,
          sex = Sex,
          education = education_years,
          country = CodigoCentro,
          id = record_id) 
+
+
+#-------------------------------------------------------------------------------
+#                           DROPOUT FASE
+#-------------------------------------------------------------------------------
+
+df <- df %>%
+  mutate(
+    UltimaVisita = case_when(
+      Tiene24m == TRUE ~ "24m", 
+      Tiene18m == TRUE ~ "18m",
+      Tiene12m == TRUE ~ "12m",
+      Tiene6m  == TRUE ~ "6m",
+      TieneBase == TRUE ~ "base",
+      TRUE ~ NA_character_
+    ),
+    FaseDropout = case_when(
+      IniciaIntervencion == 0 ~ "Between RDZ and Intervention Start",
+      UltimaVisita == "18m" ~ "Between 18-24 months",
+      UltimaVisita == "12m" ~ "Between 12-18 months",
+      UltimaVisita == "6m"  ~ "Between 6-12 months",
+      UltimaVisita == "base" ~ "Between 1-6 months",
+      TRUE ~ NA_character_))
+
+dfDropout <- df %>%
+  filter(Randomization == "Yes", Eventos == "24m")%>%
+  select(id, Randomization,
+         TieneBase, Tiene6m, Tiene12m, Tiene18m, Tiene24m,
+         EsDropout, DropoutPhase, FaseDropout,
+         IniciaIntervencion)
+
+Inconsistencias <- dfDropout %>%
+  filter(
+    FaseDropout == "Between RDZ and Intervention Start"
+    #FaseDropout != DropoutPhase
+  )
+View(Inconsistencias)
+
