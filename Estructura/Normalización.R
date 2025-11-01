@@ -157,7 +157,7 @@ df_v1 <- df_bruto %>%
 #Voy a unificar educación
 #-------------------------------------------------------------------------------
 
-df_v2 <- df_v1 %>%
+df <- df_v1 %>%
   mutate(
     education_years = if_else(!is.na(education_years_base),education_years_base,
                               education_pre))%>%
@@ -167,7 +167,7 @@ df_v2 <- df_v1 %>%
 #Voy a pasar a factor el status de grupo y rdz_yn + cambio sexo
 #-------------------------------------------------------------------------------
 
-df_v3 <- df_v2 %>%
+df <- df %>%
   mutate(
     Arm = factor(rdz_rdz,
                  levels = c("0","1"),
@@ -191,7 +191,7 @@ df_v3 <- df_v2 %>%
 #cuenta con 2.
 #-------------------------------------------------------------------------------
 
-df_v4 <- df_v3 %>%
+df <- df %>%
   mutate(
     CodigoCentro = str_extract(record_id, "^[0-9]+"),
     center = dplyr::recode(
@@ -216,7 +216,7 @@ df_v4 <- df_v3 %>%
 #Arreglo personas que no están randomizadas
 #-------------------------------------------------------------------------------
 
-df_v4 <- df_v4 %>%
+df <- df %>%
   mutate(
     Randomization = if_else(is.na(Randomization),
                             "No", Randomization))
@@ -237,7 +237,7 @@ id_erroneos_2 <- c("316-3","320-24","320-39","324-60","324-73",
                    "312-167", "318-41", "316-102", "321-154", 
                    "321-156", "321-157", "321-163", "321-159")
 
-df_v4 <- df_v4 %>%
+df <- df %>%
   mutate(
     Randomization = if_else(record_id %in% id_erroneos_2,
                             "No",
@@ -245,11 +245,11 @@ df_v4 <- df_v4 %>%
 #-------------------------------------------------------------------------------
 #Etnicidad
 #-------------------------------------------------------------------------------
-race_pre <- df_v4 %>%
+race_pre <- df %>%
   filter(Eventos == "pre") %>%
   transmute(record_id,
             race_pre = str_trim(as.character(race)))
-df_v4 <- df_v4 %>%
+df <- df %>%
   left_join(race_pre, by = "record_id") %>%
   mutate(
     race = if_else(!is.na(race_pre), race_pre, as.character(race)),
@@ -263,7 +263,7 @@ df_v4 <- df_v4 %>%
 #México tiene ceros pero no lo tiene tampoco.
 #-------------------------------------------------------------------------------
 
-df_v4 <- df_v4 %>%
+df <- df %>%
   mutate(
     vhs = if_else(
       vhs == 999 | center == "México",
@@ -275,7 +275,7 @@ df_v4 <- df_v4 %>%
 #-------------------------------------------------------------------------------
 
 #Quiero mirar la distribución para entender el puntaje
-df_v4 <- df_v4 %>%
+df <- df %>%
   mutate(
     Fra_Clase = if_else(
       Sex == "Men", 
@@ -291,7 +291,7 @@ df_v4 <- df_v4 %>%
 #Agrego una variable dicotómica que sea si tiene o no APOE e4
 #-------------------------------------------------------------------------------
 
-df_v4 <- df_v4 %>%
+df <- df %>%
   mutate(
     APOE = case_when(
       apoe4 == 0 ~ "Non-carrier",
@@ -301,7 +301,7 @@ df_v4 <- df_v4 %>%
 #Paso el MMSE a baseline
 #-------------------------------------------------------------------------------
 
-df_v4 <- df_v4 %>%
+df <- df %>%
   group_by(record_id) %>% 
   mutate(
     mmse_total = if_else(
@@ -319,7 +319,7 @@ df_v4 <- df_v4 %>%
 #Pregunta 1: ¿Cuántas personas han fumado a lo largo de su vida?
 #593
 
-fumadores <- df_v4 %>%
+fumadores <- df %>%
   filter(Eventos == "base" &
            Randomization == "Yes")%>%
   summarise(
@@ -327,7 +327,7 @@ fumadores <- df_v4 %>%
   )
 
 #Recodifico el nombre
-df_v4 <- df_v4 %>%
+df <- df %>%
   mutate(
     History_Smoking = if_else(
       tobacco_pre == 1,
@@ -335,8 +335,15 @@ df_v4 <- df_v4 %>%
     )
   )
 
+df = df %>%
+  rename(age = age_pre,
+         sex = Sex,
+         education = education_years,
+         country = CodigoCentro,
+         id = record_id)
+
 #Vamos con el alcohol
-df_v4 <- df_v4 %>%
+df <- df %>%
   mutate(
     Alcohol_Consumption = if_else(
       if_any(c(ifa18, ifa19, ifa20, ifa21), ~ .x >= 3),
@@ -348,7 +355,7 @@ df_v4 <- df_v4 %>%
 #Renombro el CDR y el IPAQ
 #-------------------------------------------------------------------------------
 
-df_v4 <- df_v4 %>%
+df <- df %>%
   rename(
     CDR = score_final_score
   ) %>%
@@ -364,7 +371,7 @@ df_v4 <- df_v4 %>%
 #Determinantes sociales de la salud
 #-------------------------------------------------------------------------------
 
-df_v4 <- df_v4 %>%
+df <- df %>%
   mutate(
     EscolaridadMadre = case_when(
       education_mother == 0 ~ "No schooling",
@@ -430,10 +437,10 @@ TestNps = c(
 
 
 # cuántas columnas de TestNps existen realmente en df_v4
-eval_present <- intersect(TestNps, names(df_v4))
+eval_present <- intersect(TestNps, names(df))
 n_present_cols <- length(eval_present)
 
-df_v4 <- df_v4 %>%
+df <- df %>%
   mutate(
     n_no_na = rowSums(across(all_of(eval_present), ~ !is.na(.))), 
     EvaluacionCompleta3 = if_else(n_no_na >= 3, 1, 0),            
@@ -444,13 +451,13 @@ df_v4 <- df_v4 %>%
 #Área laboral y modifico de nuevo educación
 #-------------------------------------------------------------------------------
 
-df_v4 <- df_v4 %>%
+df <- df %>%
   mutate(
     EducationLevel = case_when(
-      education_years < 7 ~ "Incomplete Primary",
-      education_years < 9 ~ "Complete Primary",
-      education_years < 13 ~ "Complete Secondary",
-      education_years > 12 ~ "University or higher"
+      education < 7 ~ "Incomplete Primary",
+      education < 9 ~ "Complete Primary",
+      education < 13 ~ "Complete Secondary",
+      education > 12 ~ "University or higher"
     ),
     Job = case_when(
       job_pre == 1 ~ "Clerical/Office",
@@ -470,7 +477,7 @@ df_v4 <- df_v4 %>%
 #Recodificamos dropout
 #-------------------------------------------------------------------------------
 
-df_v4 <- df_v4 %>%
+df <- df %>%
   mutate(
     DropoutReason = case_when(
       dropout_reason == 0 ~ "Death",
@@ -495,180 +502,6 @@ df_v4 <- df_v4 %>%
                           ordered = TRUE))
 
 
-#-------------------------------------------------------------------------------
-#Empezó la intervención
-#-------------------------------------------------------------------------------
-
-df_v4 <- df_v4 %>%
-  group_by(record_id) %>%
-  mutate(
-    IniciaIntervencion = as.integer(any(!is.na(ef_date) | !is.na(gf_date)))
-  ) %>%
-  ungroup()
-
-
-ids_peru <- c("320-18","320-6")
-df_v4 <- df_v4 %>%
-  mutate(
-    IniciaIntervencion = if_else(record_id %in% ids_peru,
-                                 1L, IniciaIntervencion))
-
-#-------------------------------------------------------------------------------
-#                        MIND SCORE 
-#-------------------------------------------------------------------------------
-
-df <- df_v4 %>%
-  mutate(
-    mind1 = if_else(pointerfood1 < 2, 0, if_else(pointerfood1 == 3, 0.5, 1)),#check
-    mind2 = if_else(pointerfood2 < 4, 1, if_else(pointerfood2 == 4, 0.5, 0)),#check
-    mind3 = if_else(pointerfood3 < 4, 0, if_else(pointerfood3 < 6, 0.5, 1)),#check
-    mind4 = if_else(pointerfood4 < 5, 1, if_else(pointerfood4 == 5, 0.5, 0)),#check
-    mind5 = if_else(pointerfood5 < 5, 0, if_else(pointerfood5 == 5, 0.5, 1)),#check
-    mind6 = if_else(pointerfood6 < 3, 0, if_else(pointerfood6 == 3, 0.5, 1)),#check
-    mind7 = if_else(pointerfood7 == 1, 0, if_else(pointerfood7 == 2, 0.5, 1)),#check
-    mind8 = if_else(pointerfood8 < 3, 0, if_else(pointerfood8 == 3, 0.5, 1)),#check
-    mind9 = if_else(pointerfood9 == 6, 0, if_else(pointerfood9 < 3, 1, 0.5)),#check
-    mind10 = if_else(pointerfood10 < 3, 0, if_else(pointerfood10 < 5, 0.5, 1)),#check
-    mind11 = if_else(pointerfood11 == 6, 0.5, 0),#check
-    mind12 = if_else(pointerfood12 < 5, 1, if_else(pointerfood12 == 5, 0.5, 0)),#check
-    mind13 = if_else(pointerfood13 > 4, 1, if_else(pointerfood13 == 1, 0, 0.5)),#check
-    mind14 = if_else(pointerfood14 > 3, 0, if_else(pointerfood14 == 3, 0.5, 1)),#check
-    MIND = rowSums(across(starts_with("mind")), na.rm = TRUE))
-
-#-------------------------------------------------------------------------------
-#                              PROMEDIAMOS PRESIÓN
-#-------------------------------------------------------------------------------
-
-df <- df %>%
-  mutate(
-    Diastolic = (bp_diastolic1 + bp_diastolic2) / 2,
-    Systolic = (bp_systolic1 + bp_systolic2) / 2)
-
-
-#-------------------------------------------------------------------------------
-#                         MISSING AT RANDOM
-#-------------------------------------------------------------------------------
-
-#Tienen todas las evaluaciones
-df <- df %>%
-  group_by(record_id) %>%
-  mutate(
-    cuenta = sum(EvaluacionCompleta50 == 1, na.rm = TRUE),
-    AsistenciaPerfecta = if_else(cuenta == 5, 1, 0)
-  ) %>%
-  ungroup()
-
-df <- df %>%
-  group_by(record_id) %>%
-  mutate(
-    TieneBase  = any(EvaluacionCompleta50 == 1 & Eventos == "base", na.rm = TRUE),
-    Tiene6m  = any(EvaluacionCompleta50 == 1 & Eventos == "6m", na.rm = TRUE),
-    Tiene12m  = any(EvaluacionCompleta50 == 1 & Eventos == "12m", na.rm = TRUE),
-    Tiene18m  = any(EvaluacionCompleta50 == 1 & Eventos == "18m", na.rm = TRUE),
-    Tiene24m   = any(EvaluacionCompleta50 == 1 & Eventos == "24m", na.rm = TRUE),
-    AsistenciaInicioFin = if_else(TieneBase & Tiene24m, 1, 0),
-    BaseMasUno = if_else(TieneBase == TRUE & 
-                           (Tiene6m == TRUE | Tiene12m == TRUE |
-                              Tiene18m == TRUE | Tiene24m == TRUE), 1, 0)
-  ) %>%
-  ungroup()
-
-
-#-------------------------------------------------------------------------------
-#                         ANTECEDENTES FAMILIARES
-#-------------------------------------------------------------------------------
-
-df <- df %>%
-  mutate(
-    fam_problems = case_when(
-      father_problem %in% c(1, 2, 3, 4, 5) |
-        mother_problem %in% c(1, 2, 3, 4, 5) ~ "Sí",
-      father_problem == 8 & mother_problem == 8 ~ "No",
-      father_problem == 9 & mother_problem == 9 ~ "Desconocido",
-      TRUE ~ NA_character_
-    )
-  )
-
-df$fam_problems = as.factor(df$fam_problems)
-
-#-------------------------------------------------------------------------------
-#                       DECISIONES DE LIMPIEZA
-#-------------------------------------------------------------------------------
-
-df <- df %>%
-  mutate(
-    #Este ID se olvidó los anteojos a los 24m.
-    tima_trail_a = if_else(record_id == "320-45" & 
-                             Eventos == "24m", NA, tima_trail_a),
-    tima_trail_b = if_else(record_id == "324-44" & 
-                             Eventos == "6m", NA, tima_trail_b),
-    tima_trail_b = if_else(record_id == "320-45" & 
-                             Eventos == "24m", NA, tima_trail_b),
-    tima_trail_a = if_else(tima_trail_a > 150, 150, tima_trail_a),
-    #Si el TMT-A es mayor a 150, lo dejo en 150.
-    #Si el TMT-A es 0, lo dejo en NA.
-    tima_trail_a = if_else(tima_trail_a == 0, NA, tima_trail_a),
-    #Si el TMT B es mayor a 300, lo dejo en 300
-    tima_trail_b = if_else(tima_trail_b > 300, 300, tima_trail_b),
-    tima_trail_b = if_else(tima_trail_b == 0, NA, tima_trail_b),
-    #Todos los interrumpidos pasan a ser NA
-    tima_trail_b = if_else(trail_interrupt_test == 1, NA, tima_trail_b),
-    #Si el stroop está en 0, va NA.
-    stroop_p = if_else(stroop_p == 0, NA, stroop_p),
-    stroop_c = if_else(stroop_c == 0, NA, stroop_c),
-    stroop_pc = if_else(stroop_pc == 0, NA, stroop_pc),
-    #Modificación de un valor en particular.
-    p_total_score = if_else(record_id == "318-121" & Eventos == "6m",
-                            18, p_total_score),
-    m_total_score = if_else(record_id == "314-123" & Eventos == "base",
-                            3, m_total_score),
-    stroop_p = if_else(record_id == "320-45" & Eventos == "24m",
-                       NA, stroop_p),
-    stroop_c = if_else(record_id == "320-45" & Eventos == "24m",
-                       NA, stroop_c),
-    stroop_pc = if_else(record_id == "320-45" & Eventos == "24m",
-                        NA, stroop_pc),
-    #CST
-    tiempo_parte_a = if_else(tiempo_parte_a == 0,
-                             NA, tiempo_parte_a),
-    tiempo_parte_b = if_else(tiempo_parte_b == 0,
-                             NA, tiempo_parte_b),
-    tiempo_parte_c = if_else(tiempo_parte_c == 0,
-                             NA, tiempo_parte_c),
-    score_wais_bruto = if_else(score_wais_bruto == 0,
-                               NA, score_wais_bruto))
-
-df <- df %>%
-  mutate(
-    PromedioCero = (tiempo1 + tiempo2) / 2,
-    PromedioCero = if_else(PromedioCero == 0, NA, PromedioCero),
-    cstA = if_else(!is.na(csta),
-                   (tiempo_parte_a - PromedioCero), NA),
-    cstB = if_else(!is.na(cstb),
-                   (tiempo_parte_b - PromedioCero), NA),
-    cstC = if_else(!is.na(cstc),
-                   (tiempo_parte_c - PromedioCero), NA))
-
-#-------------------------------------------------------------------------------
-#                              ¿ES DROPOUT?
-#-------------------------------------------------------------------------------
-
-df <- df %>%
-  group_by(record_id) %>%
-  mutate(
-    EsDropout = if_else(Randomization == "Yes" & Tiene24m == FALSE,
-                          "Dropout", "No-Dropout"))%>%
-  ungroup()
-
-dfcheckeo <- df %>%
-  filter(Eventos == "24m", Randomization == "Yes")%>%
-  select(record_id, Tiene24m, EsDropout, dropout_phase)
-
-df <- df %>%
-  group_by(record_id) %>%
-  arrange(Eventos, .by_group = TRUE) %>%
-  fill(dropout_phase, .direction = "downup") %>%
-  ungroup()
 
 #-------------------------------------------------------------------------------
 #                      ADHERENCIA MÍNIMA
@@ -681,6 +514,8 @@ df <- df %>%
 #-------------------------------------------------------------------------------
 #                              SISTEMÁTICO
 #-------------------------------------------------------------------------------
+
+
 
 ef_w   <- function(weeks) paste0("ef_week_", rep(weeks,  each = 4), "_", 1:4)
 nis_w  <- function(weeks) paste0("nis_week_", weeks)
@@ -748,7 +583,7 @@ df_flags <- df %>%
     has_18_24 = (Eventos == "12m")  & row_any(cur_data(), all_18_24))
 
 adher_por_id <- df_flags %>%
-  dplyr::group_by(record_id) %>%
+  dplyr::group_by(id) %>%
   dplyr::summarise(
     adher_0_6   = as.integer(any(has_0_6,   na.rm = TRUE)),
     adher_6_12  = as.integer(any(has_6_12,  na.rm = TRUE)),
@@ -757,19 +592,186 @@ adher_por_id <- df_flags %>%
     .groups = "drop")
 
 
-df <- df %>% dplyr::left_join(adher_por_id, by = "record_id")
+df <- df %>% dplyr::left_join(adher_por_id, by = "id")
 
-dfCuenta <- df %>%
-  group_by(record_id)%>%
-  filter(Randomization == "Yes" & Arm == "Systematic" &
-           Eventos == "base")%>%
+#-------------------------------------------------------------------------------
+#Empezó la intervención
+#-------------------------------------------------------------------------------
+
+df <- df %>%
+  group_by(id) %>%
   mutate(
-    SumaAdhMin = sum(adher_0_6,adher_6_12,
-                     adher_18_24, adher_12_18))%>%
-  select(record_id, center, 
-         adher_0_6,adher_6_12,
-         adher_18_24, adher_12_18, EsDropout,
-         Tiene24m, SumaAdhMin)
+    IniciaIntervencion = as.integer(any(!is.na(ef_date) | !is.na(gf_date) |
+                                          adher_0_6 == 1 |
+                                              adher_6_12 == 1 |
+                                              adher_12_18 == 1 |
+                                              adher_18_24 == 1)))%>%
+  ungroup()
+
+table(df$IniciaIntervencion)
+
+ids_peru <- c("320-18","320-6")
+df <- df %>%
+  mutate(
+    IniciaIntervencion = if_else(id %in% ids_peru,
+                                 1L, IniciaIntervencion))
+
+#-------------------------------------------------------------------------------
+#                        MIND SCORE 
+#-------------------------------------------------------------------------------
+
+df <- df %>%
+  mutate(
+    mind1 = if_else(pointerfood1 < 2, 0, if_else(pointerfood1 == 3, 0.5, 1)),#check
+    mind2 = if_else(pointerfood2 < 4, 1, if_else(pointerfood2 == 4, 0.5, 0)),#check
+    mind3 = if_else(pointerfood3 < 4, 0, if_else(pointerfood3 < 6, 0.5, 1)),#check
+    mind4 = if_else(pointerfood4 < 5, 1, if_else(pointerfood4 == 5, 0.5, 0)),#check
+    mind5 = if_else(pointerfood5 < 5, 0, if_else(pointerfood5 == 5, 0.5, 1)),#check
+    mind6 = if_else(pointerfood6 < 3, 0, if_else(pointerfood6 == 3, 0.5, 1)),#check
+    mind7 = if_else(pointerfood7 == 1, 0, if_else(pointerfood7 == 2, 0.5, 1)),#check
+    mind8 = if_else(pointerfood8 < 3, 0, if_else(pointerfood8 == 3, 0.5, 1)),#check
+    mind9 = if_else(pointerfood9 == 6, 0, if_else(pointerfood9 < 3, 1, 0.5)),#check
+    mind10 = if_else(pointerfood10 < 3, 0, if_else(pointerfood10 < 5, 0.5, 1)),#check
+    mind11 = if_else(pointerfood11 == 6, 0.5, 0),#check
+    mind12 = if_else(pointerfood12 < 5, 1, if_else(pointerfood12 == 5, 0.5, 0)),#check
+    mind13 = if_else(pointerfood13 > 4, 1, if_else(pointerfood13 == 1, 0, 0.5)),#check
+    mind14 = if_else(pointerfood14 > 3, 0, if_else(pointerfood14 == 3, 0.5, 1)),#check
+    MIND = rowSums(across(starts_with("mind")), na.rm = TRUE))
+
+#-------------------------------------------------------------------------------
+#                              PROMEDIAMOS PRESIÓN
+#-------------------------------------------------------------------------------
+
+df <- df %>%
+  mutate(
+    Diastolic = (bp_diastolic1 + bp_diastolic2) / 2,
+    Systolic = (bp_systolic1 + bp_systolic2) / 2)
+
+
+#-------------------------------------------------------------------------------
+#                         MISSING AT RANDOM
+#-------------------------------------------------------------------------------
+
+#Tienen todas las evaluaciones
+df <- df %>%
+  group_by(id) %>%
+  mutate(
+    cuenta = sum(EvaluacionCompleta50 == 1, na.rm = TRUE),
+    AsistenciaPerfecta = if_else(cuenta == 5, 1, 0)
+  ) %>%
+  ungroup()
+
+df <- df %>%
+  group_by(id) %>%
+  mutate(
+    TieneBase  = any(EvaluacionCompleta50 == 1 & Eventos == "base", na.rm = TRUE),
+    Tiene6m  = any(EvaluacionCompleta50 == 1 & Eventos == "6m", na.rm = TRUE),
+    Tiene12m  = any(EvaluacionCompleta50 == 1 & Eventos == "12m", na.rm = TRUE),
+    Tiene18m  = any(EvaluacionCompleta50 == 1 & Eventos == "18m", na.rm = TRUE),
+    Tiene24m   = any(EvaluacionCompleta50 == 1 & Eventos == "24m", na.rm = TRUE),
+    AsistenciaInicioFin = if_else(TieneBase & Tiene24m, 1, 0),
+    BaseMasUno = if_else(TieneBase == TRUE & 
+                           (Tiene6m == TRUE | Tiene12m == TRUE |
+                              Tiene18m == TRUE | Tiene24m == TRUE), 1, 0)
+  ) %>%
+  ungroup()
+
+
+#-------------------------------------------------------------------------------
+#                         ANTECEDENTES FAMILIARES
+#-------------------------------------------------------------------------------
+
+df <- df %>%
+  mutate(
+    fam_problems = case_when(
+      father_problem %in% c(1, 2, 3, 4, 5) |
+        mother_problem %in% c(1, 2, 3, 4, 5) ~ "Sí",
+      father_problem == 8 & mother_problem == 8 ~ "No",
+      father_problem == 9 & mother_problem == 9 ~ "Desconocido",
+      TRUE ~ NA_character_
+    )
+  )
+
+df$fam_problems = as.factor(df$fam_problems)
+
+#-------------------------------------------------------------------------------
+#                       DECISIONES DE LIMPIEZA
+#-------------------------------------------------------------------------------
+
+df <- df %>%
+  mutate(
+    #Este ID se olvidó los anteojos a los 24m.
+    tima_trail_a = if_else(id == "320-45" & 
+                             Eventos == "24m", NA, tima_trail_a),
+    tima_trail_b = if_else(id == "324-44" & 
+                             Eventos == "6m", NA, tima_trail_b),
+    tima_trail_b = if_else(id == "320-45" & 
+                             Eventos == "24m", NA, tima_trail_b),
+    tima_trail_a = if_else(tima_trail_a > 150, 150, tima_trail_a),
+    #Si el TMT-A es mayor a 150, lo dejo en 150.
+    #Si el TMT-A es 0, lo dejo en NA.
+    tima_trail_a = if_else(tima_trail_a == 0, NA, tima_trail_a),
+    #Si el TMT B es mayor a 300, lo dejo en 300
+    tima_trail_b = if_else(tima_trail_b > 300, 300, tima_trail_b),
+    tima_trail_b = if_else(tima_trail_b == 0, NA, tima_trail_b),
+    #Todos los interrumpidos pasan a ser NA
+    tima_trail_b = if_else(trail_interrupt_test == 1, NA, tima_trail_b),
+    #Si el stroop está en 0, va NA.
+    stroop_p = if_else(stroop_p == 0, NA, stroop_p),
+    stroop_c = if_else(stroop_c == 0, NA, stroop_c),
+    stroop_pc = if_else(stroop_pc == 0, NA, stroop_pc),
+    #Modificación de un valor en particular.
+    p_total_score = if_else(id == "318-121" & Eventos == "6m",
+                            18, p_total_score),
+    m_total_score = if_else(id == "314-123" & Eventos == "base",
+                            3, m_total_score),
+    stroop_p = if_else(id == "320-45" & Eventos == "24m",
+                       NA, stroop_p),
+    stroop_c = if_else(id == "320-45" & Eventos == "24m",
+                       NA, stroop_c),
+    stroop_pc = if_else(id == "320-45" & Eventos == "24m",
+                        NA, stroop_pc),
+    #CST
+    tiempo_parte_a = if_else(tiempo_parte_a == 0,
+                             NA, tiempo_parte_a),
+    tiempo_parte_b = if_else(tiempo_parte_b == 0,
+                             NA, tiempo_parte_b),
+    tiempo_parte_c = if_else(tiempo_parte_c == 0,
+                             NA, tiempo_parte_c),
+    score_wais_bruto = if_else(score_wais_bruto == 0,
+                               NA, score_wais_bruto))
+
+df <- df %>%
+  mutate(
+    PromedioCero = (tiempo1 + tiempo2) / 2,
+    PromedioCero = if_else(PromedioCero == 0, NA, PromedioCero),
+    cstA = if_else(!is.na(csta),
+                   (tiempo_parte_a - PromedioCero), NA),
+    cstB = if_else(!is.na(cstb),
+                   (tiempo_parte_b - PromedioCero), NA),
+    cstC = if_else(!is.na(cstc),
+                   (tiempo_parte_c - PromedioCero), NA))
+
+#-------------------------------------------------------------------------------
+#                              ¿ES DROPOUT?
+#-------------------------------------------------------------------------------
+
+df <- df %>%
+  group_by(id) %>%
+  mutate(
+    EsDropout = if_else(Randomization == "Yes" & Tiene24m == FALSE,
+                          "Dropout", "No-Dropout"))%>%
+  ungroup()
+
+dfcheckeo <- df %>%
+  filter(Eventos == "24m", Randomization == "Yes")%>%
+  select(id, Tiene24m, EsDropout, dropout_phase)
+
+df <- df %>%
+  group_by(id) %>%
+  arrange(Eventos, .by_group = TRUE) %>%
+  fill(dropout_phase, .direction = "downup") %>%
+  ungroup()
 
 #-------------------------------------------------------------------------------
 #                         DROPOUTS que pasan a ser no RDZ
@@ -778,7 +780,7 @@ dfCuenta <- df %>%
 df <- df %>% mutate(Randomization = as.character(Randomization))
 df <- df %>%
   mutate(Randomization = as.character(Randomization)) %>%
-  group_by(record_id) %>%
+  group_by(id) %>%
   mutate(
     drop = any(dropout_reason == 2, na.rm = TRUE),
     Randomization = if_else(drop, "No", Randomization),
@@ -821,17 +823,6 @@ df <- df %>%
                          "18m" = "1.5",
                          "24m" = "2")) %>%
   mutate(visits = droplevels(visits))
-
-#-------------------------------------------------------------------------------
-#               CREACIÓN DE COUNTER Y RENOMBRO VARIABLES
-#-------------------------------------------------------------------------------
-
-df = df %>%
-  rename(age = age_pre,
-         sex = Sex,
-         education = education_years,
-         country = CodigoCentro,
-         id = record_id) 
 
 
 #-------------------------------------------------------------------------------
