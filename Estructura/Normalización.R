@@ -1,11 +1,12 @@
 library(readr)
+require(data.table)
 library(dplyr)
 library(tidyverse)
 library(lubridate)
 
 #Me traigo la base de datos
-df_bruto <- read_csv("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-28.csv")
-
+df_bruto <- fread("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-28.csv")
+names(df_bruto) <- make.unique(names(df_bruto))
 
 #-------------------------------------------------------------------------------
 #----------------------- CAMBIOS SIMPLES ---------------------------------------
@@ -90,8 +91,7 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "nis_telefonica8","nis_telefonica9" ,  "nis_telefonica10",  
              "nis_telefonica11","nis_telefonica12","nis_telefonica13",
              "flexible_yn",
-             "csta_errores","cstb_errores","cstc_errores",
-             "cst_comments")
+             "csta_errores","cstb_errores","cstc_errores")
 
 
 PatronColumnas <- paste0("^(", paste(Cuerpos, collapse ="|"), ")_(",
@@ -120,9 +120,10 @@ df_v1 <- df_bruto %>%
          # Inclusión PRE
          crit_in1_pre, crit_in2_pre, crit_in3_pre, crit_in4_pre, crit_in5_pre, crit_in6_pre,
          matches(PatronColumnas)) %>%
-  mutate(across(matches(PatronColumnas),        
-                ~ readr::parse_number(as.character(.x))
-  )) %>%
+  mutate(across(
+      matches(PatronColumnas),~ ifelse(grepl("\\d", .x), 
+          readr::parse_number(as.character(.x)),
+          NA_real_))) %>%
   pivot_longer( 
     cols = -c(record_id, male_pre, date_start_pre,country_pre,age_pre,
               marital_status_pre,living_alone_pre,education_pre,education_years_base,
@@ -149,9 +150,7 @@ df_v1 <- df_bruto %>%
   arrange(record_id, Eventos) %>%
   mutate(
     Eventos = factor(Eventos,
-                     levels = c("pre","scr","base","6m","12m","18m","24m"))
-  )
-
+                     levels = c("pre","scr","base","6m","12m","18m","24m")))
 
 #-------------------------------------------------------------------------------
 #Hay algunas cosas previas por arreglar.
@@ -869,5 +868,4 @@ Inconsistencias <- dfDropout %>%
     FaseDropout == "Between RDZ and Intervention Start"
     #FaseDropout != DropoutPhase
   )
-View(Inconsistencias)
 
