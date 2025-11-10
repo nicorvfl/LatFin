@@ -537,8 +537,7 @@ teams_0_6 <- c(
   "nis_grupal1","nis_grupal2","nis_grupal3","nis_grupal4",
   "ef_grupal1","ef_grupal2","ef_grupal3","ef_grupal4",
   "hmi_4capacitacion1","hmi_4capacitacion2","hmi_4capacitacion3","hmi_4capacitacion4",
-  "mgr_5grupal1","mgr_5grupal2","mgr_6grupal1","mgr_6grupal2"
-)
+  "mgr_5grupal1","mgr_5grupal2","mgr_6grupal1","mgr_6grupal2")
 
 teams_6_12  <- c("mgr_7grupal1","mgr_8grupal1","mgr_9grupal1",
                  "mgr_10grupal1","mgr_11grupal1","mgr_12grupal1")
@@ -676,6 +675,14 @@ df <- df %>%
   ) %>%
   ungroup()
 
+#-------------------------------------------------------------------------------
+#                 RANDOMIZADOS SIN BASE OUT
+#-------------------------------------------------------------------------------
+
+df <- df %>%
+  mutate(
+    Randomization = if_else(TieneBase == FALSE,
+                            "No", Randomization))
 
 #-------------------------------------------------------------------------------
 #                         ANTECEDENTES FAMILIARES
@@ -854,9 +861,44 @@ dfDropout <- df %>%
          EsDropout, DropoutPhase, FaseDropout,
          IniciaIntervencion)
 
-Inconsistencias <- dfDropout %>%
-  filter(
-    FaseDropout == "Between RDZ and Intervention Start"
-    #FaseDropout != DropoutPhase
-  )
+#-------------------------------------------------------------------------------
+#          Corrijo ID que "empiezan" intervención pero sin base
+#-------------------------------------------------------------------------------
+
+df <- df %>%
+  mutate(
+    IniciaIntervencion = if_else(id %in% c("319-51",
+                                           "321-169",
+                                           "324-34","324-36","324-37",
+                                           "324-41","324-5","324-63",
+                                           "324-66", "324-69","324-70",
+                                           "325-111","325-62"),
+                                 0, IniciaIntervencion))
+
+#-------------------------------------------------------------------------------
+#                DEFINIMOS MODIFY INTENTION TO TREAT
+#-------------------------------------------------------------------------------
+
+dataset <- df %>%
+  filter(Randomization == "Yes",
+         TieneBase == TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
