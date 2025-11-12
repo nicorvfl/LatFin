@@ -2,9 +2,10 @@ library(dplyr)
 library(arsenal)
 library(forcats)
 
-df_base_rdz <- df %>%
-  filter(Eventos == "base", Randomization == "Yes") %>%
-  distinct(record_id, .keep_all = TRUE) %>%
+df_base_rdz <- dataset %>%
+  filter(Eventos == "base", Randomization == "Yes",
+         TieneBase == TRUE) %>%
+  distinct(id, .keep_all = TRUE) %>%
   mutate(Arm = factor(Arm))
 
 Ns <- df_base_rdz %>% count(Arm, name = "N", .drop = FALSE)
@@ -14,13 +15,13 @@ N_tot  <- nrow(df_base_rdz)
 
 df_tab1 <- df_base_rdz %>%
   mutate(
-    Age  = as.numeric(age_pre),
+    Age  = as.numeric(age),
     Sex  = factor(male_pre, levels = c(0,1), labels = c("Female","Male")),
     Ethnicity = factor(race, levels = c(1,2,3,4,5,6,7),
                        labels = c("White", "Mestizo (European/Indigenous mix)",
                                   "Indigenous (Native American)", "Mixed (Black/White)",
                                   "Black", "Other / Mixed", "Prefer not to say")),
-    Education = as.numeric(education_years),
+    Education = as.numeric(education),
     MaritalStatus = factor(marital_status_pre,
                            levels = c(1,2,3,4,5),
                            labels = c("Married/Partnered","Divorced","Widowed",
@@ -51,7 +52,7 @@ df_tab1 <- df_base_rdz %>%
     vhs           = as.numeric(vhs),
     insulinemia   = as.numeric(insulinemia),
     FRS           = as.factor(Fra_Clase),
-    cdr           = as.factor(CDR),
+    CDR           = as.factor(CDR),
     imm_recalltotal_z = as.numeric(imm_recalltotal),
     delayed_recalltotal_z = as.numeric(delayed_recalltotal),
     FCSRT_imm = as.numeric(totalfreerecall_2),
@@ -96,7 +97,7 @@ labels(df_tab1$BMI)               <- "Body Mass Index (kg/m²)"
 labels(df_tab1$systolic)          <- "Blood Pressure: Systolic (mmHg)"
 labels(df_tab1$diastolic)         <- "Blood Pressure: Diastolic (mmHg)"
 labels(df_tab1$APOE)              <- "APOE ε4 carrier"
-labels(df_tab1$cdr)               <- "Clinical Dementia Rating"
+labels(df_tab1$CDR)               <- "Clinical Dementia Rating"
 labels(df_tab1$mmse)              <- "MiniMental State Examination"
 labels(df_tab1$gds)               <- "Geriatric Depression Scale"
 labels(df_tab1$glucose)           <- "Glucose (mg/dL)"
@@ -162,7 +163,7 @@ tab_B <- tableby(
   Arm ~ BMI + systolic + diastolic +
     glucose + hba1c + colesterol + ldl + hdl + triglycerides +
     hemoglobin + hematocrit + creatinine + urea + vhs + insulinemia + FRS +
-    APOE + mmse + gds + cdr,
+    APOE + mmse + gds + CDR,
   data = df_tab1, control = ctrl
 )
 sum_B <- summary(tab_B, title = "B. Clinical & Laboratory")
@@ -187,4 +188,11 @@ write2(
   list(sum_A, sum_B, sum_C),
   file  = file.path(getwd(), "Sociodemograficos", "Table1.html"),
   title = "Table 1. Baseline characteristics by group")
+
+cdrraro <- dataset%>%
+  filter(center == "Chile",
+         Eventos == "base",
+         CDR == 1)%>%
+  select(id)
+cdrraro
 

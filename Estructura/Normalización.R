@@ -5,7 +5,7 @@ library(tidyverse)
 library(lubridate)
 
 #Me traigo la base de datos
-df_bruto <- fread("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/total_data_2025-10-28.csv")
+df_bruto <- fread("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/LatFin/total_data_2025-11-12.csv")
 names(df_bruto) <- make.unique(names(df_bruto))
 
 #-------------------------------------------------------------------------------
@@ -883,9 +883,17 @@ dataset <- df %>%
   filter(Randomization == "Yes",
          TieneBase == TRUE)
 
+#-------------------------------------------------------------------------------
+#                        LE ASIGNO DROPOUT REASON A 3
+#-------------------------------------------------------------------------------
 
 
-
+dataset <- dataset %>%
+  mutate(
+    DropoutReason = if_else(Eventos == "24m" & 
+                              id %in% c("314-133","314-32","324-94"),
+                            "Participant withdrew", DropoutReason)
+  )
 
 
 
