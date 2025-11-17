@@ -3,6 +3,32 @@ require(data.table)
 library(dplyr)
 library(tidyverse)
 library(lubridate)
+library(stringr)
+
+#--------------------CONVERTIR SEGUNDOS A MINUTOS-------------------------------
+ConvertirSegundosTMT <- function(x) {
+  v <- as.character(x) #paso todo a caracter
+  v <- str_trim(v) #le quito espacios
+  v[v %in% c("", "NA", "NaN")] <- NA #unifico NA
+  out <- suppressWarnings(as.numeric(v)) #si es un número, se queda en número
+  tiene_punto <- !is.na(v) & str_detect(v, ":") #condicional para detectar ":"
+  if (!any(tiene_punto)) return(out) #si no tiene punto, número
+  partes <- str_split(v[tiene_punto], ":", simplify = TRUE) #creo partes
+  nums <- suppressWarnings(apply(partes, 2, as.numeric)) #le aplico as.numeric
+  if (is.null(dim(nums))) nums <- matrix(nums, ncol = ncol(partes))
+  secs <- rep(NA_real_, nrow(partes)) #me armo una variable vacía
+  if (ncol(partes) == 3) {
+    mins <- nums[,1]; segs <- nums[,2]; cents <- nums[,3]
+    secs <- mins*60 + segs + cents/100 #calculo el tiempo en caso de 3 cols
+  } else if (ncol(partes) == 2) {
+    mins <- nums[,1]; segs <- nums[,2]
+    secs <- mins*60 + segs #calculo el tiempo en caso de 2 cols
+  } else {
+    secs <- NA_real_
+  }
+  out[tiene_punto] <- secs
+  out
+}
 
 #Me traigo la base de datos
 df_bruto <- fread("C:/Users/nicor/OneDrive/Desktop/LatAmFINGERS/LatFin/total_data_2025-11-12.csv")
@@ -892,12 +918,433 @@ dataset <- dataset %>%
   mutate(
     DropoutReason = if_else(Eventos == "24m" & 
                               id %in% c("314-133","314-32","324-94"),
-                            "Participant withdrew", DropoutReason)
+                            "Participant withdrew", DropoutReason))
+
+#-------------------------------------------------------------------------------
+#                     CREACIÓN DE COMPUESTOS
+#-------------------------------------------------------------------------------
+
+data <- dataset %>%
+  filter(!Eventos %in% c("pre", "scr")) %>%
+  ungroup() %>%
+  droplevels()
+
+data <- data %>%
+  mutate(stroop_diff_c_pc_raw = ifelse(
+    is.na(stroop_pc) | is.na(stroop_c), 
+    NA, 
+    stroop_pc - stroop_c),
+    tima_diff_b_a_raw = ifelse(is.na(tima_trail_b) | is.na(tima_trail_a), 
+                               NA, 
+                               tima_trail_b - tima_trail_a))
+
+cog_vars <- c("imm_recalltotal", "score_wais_bruto", "forwardtotcorrect", "backwardtotcorrect", "sequencetotcorrect",
+              "fwdlongspanleng", "backlongspanleng", "seqlongspanleng", "trail_b_error", "trail_a_error", "trail_interrupt_test",
+              "tima_trail_a", "tima_trail_b", "stroop_p", "stroop_c", "stroop_pc",
+              "stroop_errores", "csta", "cstb", "cstc", "shifting_score",
+              "delayed_recalltotal", "contlearntot", "immcuetotal", "total_evoc_1l",
+              "total_evoc_1g", "total_evoc_1l1g", "total_evoc_2l", "total_evoc_2g",
+              "total_evoc_2l2g", "total_evoc_3l", "total_evoc_3g", "total_evoc_3l3g",
+              "totalfreerecall", "totalfreerecall_2", "tiempo_parte_a", "tiempo_parte_b",
+              "tiempo_parte_c", "tiempo1", "tiempo2", "totale_rdl", "totale_rdc",
+              "totales_tardia", "animaltotcorrect_vc", "p_total_score", "m_total_score", "stroop_diff_c_pc_raw", "tima_diff_b_a_raw")
+
+baseline_stats <- data %>%
+  filter(Eventos == "base") %>%
+  summarise(across(all_of(cog_vars),
+                   list(mean = ~mean(.x, na.rm = TRUE),
+                        sd = ~sd(.x, na.rm = TRUE)),
+                   .names = "{.col}_{.fn}"))
+
+z_transform <- function(x, mean_val, sd_val) {
+  (x - mean_val) / sd_val
+}
+
+for (var in cog_vars) {
+  mean_val <- baseline_stats[[paste0(var, "_mean")]]
+  sd_val <- baseline_stats[[paste0(var, "_sd")]]
+  
+  data[[paste0("z_", var)]] <- z_transform(data[[var]], mean_val, sd_val)
+}
+
+required_z_vars <- c("z_imm_recalltotal", "z_delayed_recalltotal", "z_totalfreerecall", 
+                     "z_totalfreerecall_2", "z_totale_rdl", "z_totales_tardia",
+                     "z_animaltotcorrect_vc", "z_forwardtotcorrect", "z_backwardtotcorrect",
+                     "z_sequencetotcorrect", "z_tima_trail_a", "z_tima_trail_b",
+                     "z_stroop_p", "z_stroop_c", "z_stroop_pc", "z_cstc",
+                     "z_score_wais_bruto", "z_csta", "z_cstb", "z_p_total_score", "z_m_total_score")
+missing_z_vars <- required_z_vars[!required_z_vars %in% names(data)]
+if (length(missing_z_vars) > 0) {
+  stop("Missing z-score columns: ", paste(missing_z_vars, collapse = ", "))
+}
+
+data <- data %>%
+  mutate( z_tima_trail_a_rev = -z_tima_trail_a,
+          z_tima_trail_b_rev = -z_tima_trail_b,
+          z_csta_rev = -z_csta,
+          z_cstb_rev = -z_cstb,
+          z_cstc_rev = -z_cstc)
+
+
+
+plot_datap <- data %>%
+  pivot_longer(cols = starts_with("z_"),
+               names_to = "z_test",
+               values_to = "z_score")
+
+# Histogramas Z de cada prueba
+ggplot(plot_datap, aes(x = z_score, fill = Eventos)) +
+  geom_histogram(bins = 30, alpha = 0.6, position = "identity") +
+  facet_wrap(~ z_test, scales = "free") +
+  theme_bw(base_size = 13) +                
+  theme(panel.grid.major = element_line(color = "grey90"),   
+        panel.grid.minor = element_blank(),                 
+        strip.background = element_rect(fill = "white"),    
+        legend.background = element_rect(fill = "white", color = NA)) +
+  labs(title = "Distribucion de puntuaciones Z por visita",
+       x = "Puntuacion Z",
+       y = "Frecuencia",
+       fill = "Visita")
+
+# Figuras Z de cada prueba
+plot_datap <- plot_datap %>%
+  mutate(Eventos = factor(Eventos, levels = c("base", "6m", "12m", "18m", "24m")))
+
+pp = ggplot(plot_datap, aes(x = Eventos, y = z_score, color = Arm, group = Arm)) +
+  stat_summary(fun = mean, geom = "line", size = 1, aes(group = Arm)) +
+  stat_summary(fun = mean, geom = "point", size = 2) +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2, alpha = 0.7) +
+  facet_wrap(~ z_test, scales = "free_y") +
+  theme_bw(base_size = 13) +
+  theme(
+    panel.grid.major = element_line(color = "grey90"),
+    panel.grid.minor = element_blank(),
+    strip.background = element_rect(fill = "white"),
+    legend.background = element_rect(fill = "white", color = NA)) +
+  labs(title = "Puntuaciones Z de memoria + 95% CI",
+       x = "Visita",
+       y = "Puntuación Z",
+       color = "Grupo (Arm)")
+
+pp
+
+# --- Helper: función para crear composites con regla >=50% ---
+make_composite <- function(df, comp_name, component_vars) {
+  if (!all(component_vars %in% names(df))) {
+    stop("Algunas variables en ", comp_name, " no existen: ", paste(setdiff(component_vars, names(df)), collapse = ", "))
+  }
+  n_items <- length(component_vars)
+  threshold <- ceiling(n_items / 2)
+  n_valid_col <- paste0("n_valid_", comp_name)
+  comp_col <- comp_name
+  
+  df %>%
+    mutate( !!n_valid_col := rowSums(!is.na(pick(all_of(component_vars)))),
+            !!comp_col := case_when(
+              !!sym(n_valid_col) >= threshold ~ rowMeans(pick(all_of(component_vars)), na.rm = TRUE),
+              TRUE ~ NA_real_)
+    )
+}
+
+# --- Función para renormalizar ---
+safe_renorm <- function(x, mean_val, sd_val) {
+  if (is.na(sd_val) || sd_val == 0) {
+    warning("SD baseline es 0 o NA; dejando columna sin renormalizar")
+    return(x - mean_val)
+  } else {
+    return((x - mean_val) / sd_val)
+  }
+}
+
+
+memory_vars <- c("z_imm_recalltotal", "z_delayed_recalltotal")
+
+memory2_vars <- c("z_totalfreerecall", "z_totalfreerecall_2",
+                  "z_totale_rdl", "z_totales_tardia",
+                  "z_imm_recalltotal", "z_delayed_recalltotal")
+
+executive_vars <- c("z_animaltotcorrect_vc", "z_forwardtotcorrect", 
+                    "z_backwardtotcorrect", "z_sequencetotcorrect", 
+                    "z_tima_trail_a_rev", "z_tima_trail_b_rev", 
+                    "z_stroop_pc", "z_m_total_score", "z_p_total_score")
+
+speed_vars <- c("z_tima_trail_a_rev", "z_stroop_c", "z_score_wais_bruto")
+
+global_components <- c("memory_composite", "executive_composite", "speed_composite")
+
+data <- data %>%
+  make_composite(comp_name = "memory_composite", component_vars = memory_vars) %>%
+  make_composite(comp_name = "memory_composite2", component_vars = memory2_vars) %>%
+  make_composite(comp_name = "executive_composite", component_vars = executive_vars) %>%
+  make_composite(comp_name = "speed_composite", component_vars = speed_vars) %>%
+  mutate( n_valid_global = rowSums(!is.na(pick(all_of(global_components)))),
+          global_composite = case_when(
+            n_valid_global >= 2 ~ rowMeans(pick(all_of(global_components)), na.rm = TRUE),
+            TRUE ~ NA_real_))
+
+
+# --- Renormalización de composites ---
+baseline_stats_new <- data %>%
+  filter(Eventos == "base") %>%
+  summarise(mean_global = mean(global_composite, na.rm = TRUE),
+            sd_global = sd(global_composite, na.rm = TRUE),
+            mean_memory = mean(memory_composite, na.rm = TRUE),
+            sd_memory = sd(memory_composite, na.rm = TRUE),
+            mean_memory2 = mean(memory_composite2, na.rm = TRUE),
+            sd_memory2 = sd(memory_composite2, na.rm = TRUE),
+            mean_exec = mean(executive_composite, na.rm = TRUE),
+            sd_exec = sd(executive_composite, na.rm = TRUE),
+            mean_speed = mean(speed_composite, na.rm = TRUE),
+            sd_speed = sd(speed_composite, na.rm = TRUE),)
+
+data <- data %>%
+  mutate(memory_composite = safe_renorm(memory_composite, baseline_stats_new$mean_memory, baseline_stats_new$sd_memory),
+         memory_composite2 = safe_renorm(memory_composite2, baseline_stats_new$mean_memory2, baseline_stats_new$sd_memory2),
+         executive_composite = safe_renorm(executive_composite, baseline_stats_new$mean_exec, baseline_stats_new$sd_exec),
+         speed_composite = safe_renorm(speed_composite, baseline_stats_new$mean_speed, baseline_stats_new$sd_speed),
+         global_composite = safe_renorm(global_composite, baseline_stats_new$mean_global, baseline_stats_new$sd_global),)
+
+# --- Chequeo de baseline (media ~0, SD ~1) ---
+check_baseline_new <- data %>%
+  filter(Eventos == "base") %>%
+  summarise(mean_mem = mean(memory_composite, na.rm = TRUE),
+            sd_mem = sd(memory_composite, na.rm = TRUE),
+            mean_mem2 = mean(memory_composite2, na.rm = TRUE),
+            sd_mem2 = sd(memory_composite2, na.rm = TRUE),
+            mean_exec = mean(executive_composite, na.rm = TRUE),
+            sd_exec = sd(executive_composite, na.rm = TRUE),
+            mean_speed = mean(speed_composite, na.rm = TRUE),
+            sd_speed = sd(speed_composite, na.rm = TRUE),
+            mean_global = mean(global_composite, na.rm = TRUE),
+            sd_global = sd(global_composite, na.rm = TRUE),)
+
+print(check_baseline_new)
+
+# Conteos válidos por Arm/Evento
+
+valid_counts_new <- data %>%
+  group_by(Arm, Eventos) %>%
+  summarise(n_global = sum(!is.na(global_composite)),
+            n_mem = sum(!is.na(memory_composite)),
+            n_mem2 = sum(!is.na(memory_composite2)),
+            n_exec = sum(!is.na(executive_composite)),
+            n_speed = sum(!is.na(speed_composite))) %>% ungroup()
+
+print(valid_counts_new)
+dropout_info <- data %>%
+  filter(visits == 0) %>%
+  mutate(time_to_dropout = case_when(
+    FaseDropout == "No Dropout" ~ 2,
+    FaseDropout == "Between RDZ and Intervention Start" ~ 0,
+    FaseDropout == "Between 1-6 months" ~ 0.25,
+    FaseDropout == "Between 6-12 months" ~ 0.75,
+    FaseDropout == "Between 12-18 months" ~ 1.25,
+    FaseDropout == "Between 18-24 months" ~ 1.75,
+    TRUE ~ NA_real_),
+    event_dropout = if_else(FaseDropout == "No Dropout", 0, 1)) %>%
+  select(id, time_to_dropout, event_dropout, FaseDropout)
+
+data_full <- data %>%
+  left_join(dropout_info, by = "id") %>%
+  group_by(id) %>%
+  mutate(still_in_study = if_else(visits <= time_to_dropout, 1L, 0L),
+         has_outcome = if_else(!is.na(global_composite), 1L, 0L),
+         observed = if_else(still_in_study == 1 & has_outcome == 1, 1L, 0L),
+         global_lag = lag(global_composite),
+         global_baseline = first(global_composite)) %>%
+  ungroup()
+
+# ===============================================================
+# 2. Clasificar patrones por sujeto
+# ===============================================================
+
+pattern_summary <- data_full %>%
+  group_by(id, Arm, country) %>%
+  summarise(hizo_dropout = max(1 - still_in_study),
+            tuvo_missing = sum(still_in_study == 1 & has_outcome == 0),
+            .groups = "drop") %>%
+  mutate(tipo = case_when(hizo_dropout == 1 & tuvo_missing == 0 ~ "Pure Dropout",
+                          hizo_dropout == 0 & tuvo_missing > 0 ~ "Intermitent Missing",
+                          hizo_dropout == 1 & tuvo_missing > 0 ~ "Dropout + Intermitent Missing",
+                          hizo_dropout == 0 & tuvo_missing == 0 ~ "Completers"))
+
+
+data <- data %>%
+  mutate(
+    visits = as.numeric(as.character(visits)),
+    global_composite = as.numeric(global_composite)
   )
 
+dropout_info <- data %>%
+  filter(visits == 0) %>%
+  mutate(time_to_dropout = case_when(
+    FaseDropout == "No Dropout" ~ 2,
+    FaseDropout == "Between RDZ and Intervention Start" ~ 0,
+    FaseDropout == "Between 1-6 months" ~ 0.25,
+    FaseDropout == "Between 6-12 months" ~ 0.75,
+    FaseDropout == "Between 12-18 months" ~ 1.25,
+    FaseDropout == "Between 18-24 months" ~ 1.75,
+    TRUE ~ NA_real_
+  ),
+  event_dropout = if_else(FaseDropout == "No Dropout", 0L, 1L)
+  ) %>%
+  select(id, time_to_dropout, event_dropout, FaseDropout)
+
+data_full <- data %>%
+  left_join(dropout_info, by = "id") %>%
+  group_by(id) %>%
+  mutate(
+    still_in_study = if_else(visits <= time_to_dropout, 1L, 0L),
+    has_outcome = if_else(!is.na(global_composite), 1L, 0L),
+    observed = if_else(still_in_study == 1 & has_outcome == 1, 1L, 0L),
+    global_lag = lag(global_composite),
+    global_baseline = first(global_composite)
+  ) %>%
+  ungroup()
 
 
+# ===============================================================
+# 2. Clasificar patrones por sujeto
+# ===============================================================
+library(kableExtra)
 
+pattern_summary <- data_full %>%
+  group_by(id, Arm, country) %>%
+  summarise(hizo_dropout = max(1 - still_in_study),
+            tuvo_missing = sum(still_in_study == 1 & has_outcome == 0),
+            .groups = "drop") %>%
+  mutate(tipo = case_when(hizo_dropout == 1 & tuvo_missing == 0 ~ "Pure Dropout",
+                          hizo_dropout == 0 & tuvo_missing > 0 ~ "Intermitent Missing",
+                          hizo_dropout == 1 & tuvo_missing > 0 ~ "Dropout + Intermitent Missing",
+                          hizo_dropout == 0 & tuvo_missing == 0 ~ "Completers"))
+
+# ===============================================================
+# 3. Tablas resumen con knitr/kable
+# ===============================================================
+
+# --- (a) Global ---
+pattern_summary_tab <- pattern_summary %>%
+  count(tipo) %>% mutate(prop = n / sum(n))
+
+pattern_summary_tab %>%
+  kable(caption = "Participation Pattern", digits = 3, col.names = c("Pattern type", "N", "Proportion")) %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+# --- (b) Por Arm ---
+pattern_by_arm <- pattern_summary %>%
+  count(Arm, tipo) %>%
+  group_by(Arm) %>%
+  mutate(prop = n / sum(n)) %>%
+  ungroup()
+
+pattern_by_arm %>%
+  kable(caption = "Participation Pattern by Arm", digits = 3, col.names = c("Arm", "Pattern type", "N", "Proportion")) %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+# --- (c) Por Country ---
+pattern_by_country <- pattern_summary %>%
+  count(country, tipo) %>%
+  group_by(country) %>%
+  mutate(prop = n / sum(n)) %>%
+  ungroup()
+
+pattern_by_country %>%
+  kable(caption = "Participation Pattern by Country", digits = 3, col.names = c("Country", "Pattern type", "N", "Proportion")) %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+
+# 1. Preparar datos 
+plot_data <- pattern_by_country %>%
+  mutate(country = fct_inorder(country),  
+         tipo = fct_infreq(tipo))         
+library(scales)
+
+# 2. Crear la figura: 
+fig_pattern <- ggplot(plot_data, aes(x = country, y = prop, fill = tipo)) +
+  geom_col(position = "fill", width = 0.7, color = "white") +  
+  geom_text(aes(label = percent(prop, accuracy = 1)), 
+            position = position_fill(vjust = 0.5),  size = 3.5, color = "white",  fontface = "bold") +
+  scale_y_continuous(labels = percent_format()) +
+  scale_fill_brewer(palette = "Set2", name = "Pattern Type") +  #
+  labs(title = "Participation Pattern by Country",
+       x = "Country",  y = "Proportion of Participants", fill = "Pattern Type") +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.position = "top")
+
+# 3. Mostrar
+print(fig_pattern)
+
+
+# --- (d) Por Country  x Arm---
+pattern_by_country_arm <- pattern_summary %>%
+  count(country, Arm, tipo) %>%
+  group_by(country, Arm) %>%
+  mutate(prop = n / sum(n)) %>%
+  ungroup()
+
+pattern_by_country_arm %>%
+  kable(caption = "Participation Pattern by Country x Arm",
+        digits = 3, col.names = c("Country", "Arm", "Pattern type", "N", "Proportion")) %>%
+  kable_styling(full_width = FALSE, position = "center")
+
+
+fig_facet <- pattern_by_country_arm %>%
+  mutate(tipo = fct_infreq(tipo)) %>%
+  ggplot(aes(x = Arm, y = prop, fill = tipo)) +
+  geom_col(position = "fill", width = 0.7, color = "white") +
+  geom_text(aes(label = percent(prop, accuracy = 1)),
+            position = position_fill(vjust = 0.5), size = 3, color = "black", fontface = "bold") +
+  scale_y_continuous(labels = percent) +
+  scale_fill_brewer(palette = "Set2", name = "Pattern") +
+  facet_wrap(~ country, ncol = 4) +
+  labs(title = "Participation Pattern by Country × Arm", x = "Arm", y = "Proportion") +
+  theme_minimal(base_size = 10) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        strip.text = element_text(face = "bold"),
+        axis.text.x = element_text(angle = 0),
+        legend.position = "top")
+
+# Tabla de conteos por patrón y brazo
+conteos_patron_arm <- pattern_summary %>%
+  count(tipo, Arm) %>%  pivot_wider(names_from = Arm, values_from = n, values_fill = 0)
+
+# Calcular totales y proporciones
+conteos_patron_arm <- conteos_patron_arm %>%
+  mutate(Total = Flexible + Systematic,
+         prop_Flexible = Flexible / Total,
+         prop_Systematic = Systematic / Total)
+
+# Aplicar test Chi² o Fisher según tamaño
+test_results <- lapply(seq_len(nrow(conteos_patron_arm)), function(i) {
+  tabla <- matrix(c(conteos_patron_arm$Flexible[i],
+                    conteos_patron_arm$Systematic[i],
+                    sum(conteos_patron_arm$Flexible) - conteos_patron_arm$Flexible[i],
+                    sum(conteos_patron_arm$Systematic) - conteos_patron_arm$Systematic[i]),
+                  nrow = 2)
+  if (any(tabla < 5)) {
+    fisher.test(tabla)
+  } else {
+    chisq.test(tabla)
+  }
+})
+
+pattern_compare <- conteos_patron_arm %>%
+  mutate(Chi2 = sapply(test_results, function(x)
+    ifelse(!is.null(x$statistic), round(as.numeric(x$statistic), 2), NA)),
+    p_value = sapply(test_results, function(x) round(x$p.value, 3))) %>%
+  select(tipo, Flexible, Systematic, prop_Flexible, prop_Systematic, Chi2, p_value)
+
+# tabla
+pattern_compare %>%
+  mutate(prop_Flexible = percent(prop_Flexible, accuracy = 0.1),
+         prop_Systematic = percent(prop_Systematic, accuracy = 0.1)) %>%
+  kable(caption = "Pattern type x Arm (Flexible vs Systematic)",
+        col.names = c("Pattern", "N Flexible", "N Systematic", "% Flexible", "% Systematic", "Chi²", "p-value")) %>%
+  kable_styling(full_width = FALSE, position = "center")
 
 
 
