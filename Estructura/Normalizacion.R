@@ -1,3 +1,4 @@
+#install.packages("ggforce")
 library(readr)
 require(data.table)
 library(dplyr)
@@ -765,7 +766,13 @@ df <- df %>%
     tiempo_parte_c = if_else(tiempo_parte_c == 0,
                              NA, tiempo_parte_c),
     score_wais_bruto = if_else(score_wais_bruto == 0,
-                               NA, score_wais_bruto))
+                               NA, score_wais_bruto),
+    hba1c = ifelse(hba1c == 0, NA, hba1c),
+    hdl = ifelse(hdl == 0, NA, hdl),
+    ldl = ifelse(ldl > 1000, NA, ldl),
+    hematocrit = ifelse(hematocrit == 0, NA, hematocrit),
+    hemoglobin = ifelse(hemoglobin == 0, NA, hemoglobin),
+    insulinemia = ifelse(insulinemia == 999, NA, insulinemia))
 
 #-------------------------------------------------------------------------------
 #                              ¿ES DROPOUT?
@@ -947,12 +954,12 @@ vars_outlier <- c("cstA", "cstB", "cstC")
 data <- data %>%
   mutate(
     across(all_of(vars_outlier), ~ {
-      p99 <- quantile(., probs = 0.99, na.rm = TRUE)
+      p99 <- quantile(., probs = 0.95, na.rm = TRUE)
       if_else(. > p99, 1L, 0L)
     }, .names = "{.col}_outlier_p99"),
     
     across(all_of(vars_outlier), ~ {
-      p01 <- quantile(., probs = 0.01, na.rm = TRUE)
+      p01 <- quantile(., probs = 0.05, na.rm = TRUE)
       if_else(. < p01, 1L, 0L)
     }, .names = "{.col}_outlier_p01")
   )
@@ -969,6 +976,7 @@ data <- data %>%
       rowSums(across(ends_with(c("_outlier_p99", "_outlier_p01")))) > 0,
       "Outlier",
       "No-Outlier"))
+
 
 # Arreglos en RepDom
 #ponemos en NA
@@ -1052,7 +1060,6 @@ data <- data %>%
 
 #-------------------------------------------------------------------------------
 #                           ARREGLOS
-
 
 data <- data %>%
   mutate(id = as.factor(id),
@@ -1289,9 +1296,16 @@ tabla_resumen_todos <- bind_rows(
   arrange(Domain, Version)
 
 knitr::kable(tabla_resumen_todos,
-             format = "html", digits = 3, caption = "Slope Differences (CST outliers > 2") %>%
+             format = "html", digits = 3, caption = "Slope Differences (p05 - p95)") %>%
   kable_styling(full_width = FALSE, position = "left", bootstrap_options = c("striped", "hover")) %>%
   collapse_rows(columns = 1, valign = "middle") %>%
   column_spec(1, bold = TRUE) %>%
   column_spec(2, bold = TRUE)
 
+
+View(data)
+
+
+
+write.csv(data,
+          file = "")
