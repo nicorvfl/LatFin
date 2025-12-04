@@ -772,7 +772,10 @@ df <- df %>%
     ldl = ifelse(ldl > 1000, NA, ldl),
     hematocrit = ifelse(hematocrit == 0, NA, hematocrit),
     hemoglobin = ifelse(hemoglobin == 0, NA, hemoglobin),
-    insulinemia = ifelse(insulinemia == 999, NA, insulinemia))
+    insulinemia = ifelse(insulinemia == 999, NA, insulinemia),
+    APOE = ifelse(center == "RepDom", NA, APOE),
+    apoe_genotype = ifelse(center == "RepDom", NA, apoe_genotype),
+    apoe4 = ifelse(center == "RepDom", NA, apoe4))
 
 #-------------------------------------------------------------------------------
 #                              ¿ES DROPOUT?
