@@ -957,12 +957,12 @@ vars_outlier <- c("cstA", "cstB", "cstC")
 data <- data %>%
   mutate(
     across(all_of(vars_outlier), ~ {
-      p99 <- quantile(., probs = 0.95, na.rm = TRUE)
+      p99 <- quantile(., probs = 0.99, na.rm = TRUE)
       if_else(. > p99, 1L, 0L)
     }, .names = "{.col}_outlier_p99"),
     
     across(all_of(vars_outlier), ~ {
-      p01 <- quantile(., probs = 0.05, na.rm = TRUE)
+      p01 <- quantile(., probs = 0.01, na.rm = TRUE)
       if_else(. < p01, 1L, 0L)
     }, .names = "{.col}_outlier_p01")
   )
@@ -979,6 +979,38 @@ data <- data %>%
       rowSums(across(ends_with(c("_outlier_p99", "_outlier_p01")))) > 0,
       "Outlier",
       "No-Outlier"))
+
+
+csta <- ggplot(data, aes(x = center,
+                 y = cstA, color = OutlierA))+
+  geom_point(size = 3, alpha = 0.5,
+             position = position_jitter(width = 0.2,
+                                        height = 0.2))+
+  theme_bw()+
+  labs(title = "Outlier Detection in CST-A (p1-p99)")+
+  theme(plot.title = element_text(hjust = 0.5))
+cstb <- ggplot(data, aes(x = center,
+                         y = cstB, color = OutlierB))+
+  geom_point(size = 3, alpha = 0.5,
+             position = position_jitter(width = 0.2,
+                                        height = 0.2))+
+  theme_bw()+
+  labs(title = "Outlier Detection in CST-B (p1-p99)")+
+  theme(plot.title = element_text(hjust = 0.5))
+cstc <- ggplot(data, aes(x = center,
+                         y = cstC, color = OutlierC))+
+  geom_point(size = 3, alpha = 0.5,
+             position = position_jitter(width = 0.2,
+                                        height = 0.2))+
+  theme_bw()+
+  labs(title = "Outlier Detection in CST-C (p1-p99)")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+library(patchwork)
+
+csta + cstb + cstc +
+  plot_layout(nrow = 3)
+
 
 
 # Arreglos en RepDom
@@ -1305,10 +1337,3 @@ knitr::kable(tabla_resumen_todos,
   column_spec(1, bold = TRUE) %>%
   column_spec(2, bold = TRUE)
 
-
-View(data)
-
-
-
-write.csv(data,
-          file = "")
