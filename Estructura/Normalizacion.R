@@ -92,6 +92,43 @@ Cuerpos <- c("imm_recalltotal","score_wais_bruto","score_wais_escalar",
              "ifa18", "ifa19", "ifa20", "ifa21", "education_mother","mgr_count",
              "education_father", "live_area", "house_type", "ef_count",
              "dropout_date",
+             "gait", "ipaq_1", "ipaq_2", "ipaq_hours_2a",
+             "ipaq_min_2b", "ipaq_vigorous_duration",
+             "ipaq_3", "ipaq_4", "ipaq_hours_4a",
+             "ipaq_min_4b", "ipaq_moderate_duration",
+             "ipaq_5", "ipaq_6", "ipaq_hours_6a", "ipaq_min_6b",
+             "ipaq_walk_duration", "ipaq_7",
+             "ipaq_4a", "ipaq_hours_7a", "ipaq_4b",
+             "ipaq_hours_4b", "ipaq_min4b",
+             paste0("sppb", 1:10, "_reason"),
+             "ifc1", "ifc2", "ifc3", "ifc4", "ifc5", "ifc6", "ifc7", "ifc8", "ifc9",
+             "ifc10", "ifc11", "ifc12", "ifc13", "ifc14", "ifc15",
+             
+             "sppb1", "sppb1_seconds", "sppb2",
+             "sppb2_seconds", "sppb3", "sppb3_seconds",
+             "sppb4", "sppb4_seconds", "sppb5",
+             "sppb5_seconds", "sppb6", "sppb6_seconds",
+             "sppb7", "sppb7_seconds", "sppb8", "sppb8_seconds",
+             "sppb9", "sppb9_seconds",
+             "sppb10", "sppb10_seconds",
+  
+             "pointeractivities2a", "activity2a1",
+             "activity2a2", "activity2a3",
+             "frequency2a1", "frequency2a2", "frequency2a3",
+             "minutes2a1", "minutes2a2", "minutes2a3",
+             
+             "pointeractivities5a", "activity5a1",
+             "activity5a2", "activity5a3",
+             "frequency5a1", "frequency5a2", "frequency5a3",
+             "minutes5a1", "minutes5a2", "minutes5a3",
+             
+             "pointeractivities6", "activity6a1",
+             "activity6a2", "activity6a3",
+             "frequency6a1", "frequency6a2",
+             "frequency6a3", "minutes6a1", "minutes6a2",
+             "minutes6a3",
+             
+             "pointeractivities7",
              "mgr_1grupal1","mgr_2grupal1","mgr_3grupal1","mgr_4grupal1",
              "mgr_4grupal1", "mgr_5grupal1","mgr_5grupal2","mgr_6grupal1",
              "mgr_6grupal2","mgr_7grupal1","mgr_8grupal1","mgr_9grupal1",
@@ -130,7 +167,12 @@ df_v1 <- df_bruto %>%
          tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
          heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
          glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,job_pre,
-         reason_not_rdz_scr, reason_rdz_scr,
+         reason_not_rdz_scr, reason_rdz_scr,internet_pre,
+         dyslipidemia_pre, arritmia_pre,thrombosis_pre, oxygen_pre,hepatitis_pre,
+         bariatric_surgery_pre, biliopancreatic_pre,renal_failure_pre, memory_med_pre, 
+         parkinson_pre, cerebral_tumor_pre,depression_pre, bipolar_disorder_pre,
+         cardio_rehab_pre, physical_therapy_pre,walk_pre, walk_time_pre, vision_pre, 
+         health_problem_pre, cerad_total_escore_pre,
          # Exclusión SCR
          crit_ex1_scr,  crit_ex2_scr,  crit_ex3_scr,  crit_ex4_scr,  crit_ex5_scr,  crit_ex6_scr, 
          crit_ex7_scr,  crit_ex8_scr,  crit_ex9_scr,  crit_ex10_scr, crit_ex11_scr, crit_ex12_scr,
@@ -155,6 +197,11 @@ df_v1 <- df_bruto %>%
               marital_status_pre,living_alone_pre,education_pre,education_years_base,
               tobacco_pre, retirement_pre, job_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
               heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
+              dyslipidemia_pre, arritmia_pre,thrombosis_pre, oxygen_pre,hepatitis_pre,
+              bariatric_surgery_pre, biliopancreatic_pre,renal_failure_pre, memory_med_pre, 
+              parkinson_pre, cerebral_tumor_pre,depression_pre, bipolar_disorder_pre,
+              cardio_rehab_pre, physical_therapy_pre,walk_pre, walk_time_pre, vision_pre, 
+              health_problem_pre, cerad_total_escore_pre,
               glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,reason_not_rdz_scr, reason_rdz_scr,
               crit_ex1_scr:crit_ex23_scr, crit_in1_scr:crit_in6_scr,
               crit_ex1_pre:crit_ex23_pre, crit_in1_pre:crit_in6_pre),
@@ -168,6 +215,11 @@ df_v1 <- df_bruto %>%
                 tobacco_pre, dislipidemia_caide_pre, myocardial_infarction_pre,
                 heart_failure_pre,cardiac_surgery_pre,stroke_pre,ait_pre,
                 reason_not_rdz_scr, reason_rdz_scr,
+                dyslipidemia_pre, arritmia_pre,thrombosis_pre, oxygen_pre,hepatitis_pre,
+                bariatric_surgery_pre, biliopancreatic_pre,renal_failure_pre, memory_med_pre, 
+                parkinson_pre, cerebral_tumor_pre,depression_pre, bipolar_disorder_pre,
+                cardio_rehab_pre, physical_therapy_pre,walk_pre, walk_time_pre, vision_pre, 
+                health_problem_pre, cerad_total_escore_pre,
                 crit_ex1_scr:crit_ex23_scr, crit_in1_scr:crit_in6_scr,
                 crit_ex1_pre:crit_ex23_pre, crit_in1_pre:crit_in6_pre,
                 glicemia_pre,diabetes_pre,rdz_yn_scr,rdz_rdz,Eventos),
@@ -775,7 +827,20 @@ df <- df %>%
     insulinemia = ifelse(insulinemia == 999, NA, insulinemia),
     APOE = ifelse(center == "RepDom", NA, APOE),
     apoe_genotype = ifelse(center == "RepDom", NA, apoe_genotype),
-    apoe4 = ifelse(center == "RepDom", NA, apoe4))
+    apoe4 = ifelse(center == "RepDom", NA, apoe4),
+    ifc1 = ifelse(ifc1 == 999, NA, ifc1),
+    ifc2 = ifelse(ifc2 == 999, NA, ifc2),
+    ifc3 = ifelse(ifc3 == 999, NA, ifc3),
+    ifc4 = ifelse(ifc4 == 999, NA, ifc4),
+    ifc5 = ifelse(ifc5 == 999, NA, ifc5),
+    ifc6 = ifelse(ifc6 == 999, NA, ifc6),
+    ifc7 = ifelse(ifc7 == 999, NA, ifc7),
+    ifc8 = ifelse(ifc8 == 999, NA, ifc8),
+    ifc9 = ifelse(ifc9 == 999, NA, ifc9),
+    ifc10 = ifelse(ifc10 == 999, NA, ifc10),
+    ifc11 = ifelse(ifc11 == 999, NA, ifc11),
+    ifc12 = ifelse(ifc12 == 999, NA, ifc12)
+    )
 
 #-------------------------------------------------------------------------------
 #                              ¿ES DROPOUT?
@@ -1106,10 +1171,6 @@ data$visits = as.numeric(as.character(data$visits))
 data$country_pre = as.factor(data$country_pre)
 data$id = as.factor(data$id)
 
-data <- data %>%
-  filter(!Eventos %in% c("pre", "scr")) %>%
-  ungroup() %>%
-  droplevels()
 
 #-------------------------------------------------------------------------------
 #                         CÁLCULO DE COMPUESTOS
@@ -1220,120 +1281,7 @@ valid_counts_new <- data %>%
 
 print(valid_counts_new)
 
+data <- data%>%
+  filter(Eventos %in% c("base","6m","12m","18m","24m"))
 
-######
-library(lme4)
-library(emmeans)
-
-m_global <- lmer(global_composite ~ Arm*visits + center + (1 + visits |id), 
-                 data = data,  
-                 control = lmerControl(optimizer = "bobyqa", 
-                                       optCtrl = list(maxfun = 2e5)))
-
-summary(m_global)
-print(m_global, correlation = TRUE)
-anova(m_global)
-
-# Emtrends (slopes)
-slopes <- emtrends(m_global, ~ Arm, var = "visits")
-summary(slopes, infer = c(TRUE, TRUE), level = 0.95)
-result = as.data.frame(summary(slopes))
-
-# Diferencia entre slopes (pairwise)
-slope_diff <- pairs(slopes, reverse = TRUE)
-result_diff = as.data.frame(summary(slope_diff, infer = c(TRUE, TRUE), level = 0.95))
-result_diff
-
-
-m_memory <- lmer(memory_composite ~ visits * Arm +  country_pre +
-                   (1 + visits| id),  data = data, control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5)))
-summary(m_memory)
-anova(m_memory)
-
-slopes_memory <- emtrends(m_memory, ~ Arm, var = "visits")
-summary(slopes_memory, infer = c(TRUE, TRUE), level = 0.95)
-result_memory = as.data.frame(summary(slopes_memory))
-slope_diff_memory <- pairs(slopes_memory, reverse = TRUE)
-result_memory_diff = as.data.frame(summary(slope_diff_memory, infer = c(TRUE, TRUE), level = 0.95))
-
-# --- Tablas de MEMORY ---
-library(kableExtra)
-tabla_resultados_memory <- result_memory %>% mutate(Version = "Main")
-tabla_diferencias_memory <- result_memory_diff %>% mutate(Version = "Main")
-kable(tabla_resultados_memory, caption = "Slopes de Memory por grupo", digits = 3)
-kable(tabla_diferencias_memory, caption = "Diferencias de slopes de Memory (Flexible - Systematic)", digits = 3)
-
-# ============================ SUBCOMPOSITE: EXECUTIVE ============================
-
-m_executive <- lmer(executive_composite ~ visits * Arm +  country_pre +
-                      (1 + visits| id), data = data, control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5)))
-summary(m_executive)
-anova(m_executive)
-
-slopes_executive <- emtrends(m_executive, ~ Arm, var = "visits")
-result_executive = as.data.frame(summary(slopes_executive))
-slope_diff_executive <- pairs(slopes_executive, reverse = TRUE)
-result_executive_diff = as.data.frame(summary(slope_diff_executive, infer = c(TRUE, TRUE), level = 0.95))
-
-## Tablas ##
-tabla_resultados_executive <- result_executive %>% mutate(Version = "Main")
-tabla_diferencias_executive <- result_executive_diff %>% mutate(Version = "Main")
-kable(tabla_resultados_executive, caption = "Slopes de Executive por grupo", digits = 3)
-kable(tabla_diferencias_executive, caption = "Diferencias de slopes de Executive (Flexible - Systematic)", digits = 3)
-
-# ============================ SUBCOMPOSITE: SPEED ============================
-
-m_speed <- lmer(speed_composite ~ visits * Arm +  country_pre +
-                  (1 + visits| id), data = data, control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5)))
-summary(m_speed)
-anova(m_speed)
-
-slopes_speed <- emtrends(m_speed, ~ Arm, var = "visits")
-result_speed = as.data.frame(summary(slopes_speed))
-slope_diff_speed <- pairs(slopes_speed, reverse = TRUE)
-result_speed_diff = as.data.frame(summary(slope_diff_speed, infer = c(TRUE, TRUE), level = 0.95))
-
-## Tablas ##
-tabla_resultados_speed <- result_speed %>% mutate(Version = "Main")
-tabla_diferencias_speed <- result_speed_diff %>% mutate(Version = "Main")
-kable(tabla_resultados_speed, caption = "Slopes de Speed por grupo", digits = 3)
-kable(tabla_diferencias_speed, caption = "Diferencias de slopes de Speed (Flexible - Systematic)", digits = 3)
-
-# ============================ SUBCOMPOSITE: Memory 2 (With FCST) ============================
-# m_memory2 <- lmer(memory_composite2 ~ visits * Arm + country_pre +
-#                     (1 + visits| id),
-#                   data = data,
-#                   control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5)))
-# summary(m_memory2)
-# anova(m_memory2)
-# 
-# slopes_memory2 <- emtrends(m_memory2, ~ Arm, var = "visits")
-# summary(slopes_memory2, infer = c(TRUE, TRUE), level = 0.95)
-# result_memory2 = as.data.frame(summary(slopes_memory2))
-# slope_diff_memory2 <- pairs(slopes_memory2, reverse = TRUE)
-# result_memory2_diff = as.data.frame(summary(slope_diff_memory2, infer = c(TRUE, TRUE), level = 0.95))
-# 
-# 
-# tabla_resultados_memory2 <- result_memory2 %>% mutate(Version = "Main")
-# tabla_diferencias_memory2 <- result_memory2_diff %>% mutate(Version = "Main")
-# kable(tabla_resultados_memory2, caption = "Slopes de Memory 2 por grupo", digits = 3)
-# kable(tabla_diferencias_memory2, caption = "Diferencias de slopes de Memory (Flexible - Systematic)", digits = 3)
-
-
-# ============================ TABLA RESUMEN FINAL =============================
-tabla_resumen_todos <- bind_rows(
-  tabla_diferencias %>% mutate(Domain = "Global"),
-  tabla_diferencias_memory    %>% mutate(Domain = "Memory"),
-  tabla_diferencias_executive %>% mutate(Domain = "Executive"),
-  tabla_diferencias_speed     %>% mutate(Domain = "Speed")) %>%
-  select(Domain, Version, everything()) %>%
-  mutate(Domain = factor(Domain, levels = c("Global", "Memory", "Executive", "Speed"))) %>%
-  arrange(Domain, Version)
-
-knitr::kable(tabla_resumen_todos,
-             format = "html", digits = 3, caption = "Slope Differences (p05 - p95)") %>%
-  kable_styling(full_width = FALSE, position = "left", bootstrap_options = c("striped", "hover")) %>%
-  collapse_rows(columns = 1, valign = "middle") %>%
-  column_spec(1, bold = TRUE) %>%
-  column_spec(2, bold = TRUE)
 
